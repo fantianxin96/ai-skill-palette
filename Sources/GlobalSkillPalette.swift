@@ -35,6 +35,15 @@ final class PromptStore {
         Skill(
             category: "想清楚",
             stage: "开始前",
+            icon: "🧱",
+            title: "产品结构草图",
+            command: "$i-shape",
+            detail: "页面模块、输入输出、信息架构",
+            prompt: "请使用 $i-shape，基于刚刚的产品定义，继续做产品结构草图。先不要写代码，也不要做视觉设计。请帮我梳理：1. 这个产品/桌面 App 的主用户路径；2. 每一步的页面或模块名称；3. 每个页面的核心任务；4. 每个页面的输入、处理、输出；5. 哪些页面是 MVP 必须有的，哪些可以后置；6. 哪些流程容易让用户困惑，需要提前设计引导；7. 最后给我一版清晰的信息架构和页面流转结构。"
+        ),
+        Skill(
+            category: "想清楚",
+            stage: "开始前",
             icon: "🧶",
             title: "需求来源综合",
             command: "$i-synthesize",
