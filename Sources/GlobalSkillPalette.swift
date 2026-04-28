@@ -33,6 +33,15 @@ final class PromptStore {
             prompt: "请使用 $i-critique，对当前页面/功能做一次 UI/UX 设计评审。请从视觉层级、信息架构、移动端体验、交互反馈、情绪感受、反 AI 味、可用性问题来评估。先给评分和优先级问题，不要直接改代码。"
         ),
         Skill(
+            category: "评审",
+            stage: "评审时",
+            icon: "🧷",
+            title: "多页面一致性",
+            command: "$i-consistency",
+            detail: "字体、颜色、间距、组件、状态",
+            prompt: "请使用 $i-consistency，基于项目中的 DESIGN.md 或我已经满意的第一页，检查当前页面是否与参考页面保持一致。重点看字体层级、颜色、间距、卡片、按钮、弹窗、hover/active/loading 状态、移动端表现和文案语气。先给一致性评分和优先级问题；如果需要修改，请只做对齐，不要重新设计。"
+        ),
+        Skill(
             category: "设计",
             stage: "打磨中",
             icon: "🔤",
@@ -103,6 +112,15 @@ final class PromptStore {
             command: "$i-distill",
             detail: "删掉不必要的元素和流程",
             prompt: "请使用 $i-distill，帮我简化当前功能和界面。请指出哪些元素、文案、交互或视觉装饰可以删掉，让核心体验更清楚。先给清单，再小步执行。"
+        ),
+        Skill(
+            category: "沉淀",
+            stage: "收尾时",
+            icon: "📌",
+            title: "设计系统沉淀",
+            command: "$i-system",
+            detail: "把满意页面提炼成 DESIGN.md",
+            prompt: "请使用 $i-system，从当前我满意的页面/组件里提取设计系统。请沉淀颜色、字体层级、间距、圆角、阴影、卡片、按钮、弹窗、动效状态、移动端规则和文案语气，写成项目里的 DESIGN.md。目标是让后续第二页、第三页都能延续同一套视觉语言。"
         ),
         Skill(
             category: "适配",
@@ -211,7 +229,7 @@ extension Skill {
         switch command {
         case "$i-shape", "$i-impeccable", "flow":
             return "想清楚"
-        case "$i-critique":
+        case "$i-critique", "$i-consistency":
             return "找问题"
         case "$i-typeset", "$i-layout", "$i-clarify":
             return "调排版"
@@ -221,7 +239,7 @@ extension Skill {
             return "调交互"
         case "$i-adapt", "$i-optimize", "$i-audit", "$i-harden":
             return "适配上线"
-        case "$i-distill":
+        case "$i-distill", "$i-system":
             return "删减沉淀"
         default:
             return category
