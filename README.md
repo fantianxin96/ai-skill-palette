@@ -12,7 +12,7 @@
 
 ## 场景分组（v1.0）
 
-- 想清楚：`$i-shape` / `$i-impeccable` / 一条龙工作流
+- 想清楚：`$i-shape` / `$i-impeccable` / 产品 brief / 一条龙工作流
 - 需求综合：`$i-synthesize`
 - 找问题：`$i-critique` / `$i-web-interact` / `$i-app-interact`
 - 定系统：`$i-system` / `$i-consistency`
