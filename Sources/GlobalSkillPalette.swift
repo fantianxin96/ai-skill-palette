@@ -434,83 +434,9 @@ struct SkillPaletteView: View {
     private func skillCard(_ skill: Skill) -> some View {
         let isCopied = copiedTitle == skill.title
 
-        return Button {
+        return SkillCardRow(skill: skill, isCopied: isCopied) {
             copy(skill)
-        } label: {
-            HStack(alignment: .center, spacing: 13) {
-                skillIcon(skill.icon, isCopied: isCopied)
-
-                VStack(alignment: .leading, spacing: 7) {
-                    HStack(alignment: .top, spacing: 10) {
-                        Text(skill.title)
-                            .font(.custom("PingFang SC", size: 15).weight(.semibold))
-                            .foregroundStyle(PaletteColors.ink)
-                            .lineLimit(1)
-                        Spacer()
-                        copyBadge(isCopied: isCopied)
-                    }
-
-                    Text(skill.detail)
-                        .font(.custom("PingFang SC", size: 12.5).weight(.regular))
-                        .foregroundStyle(PaletteColors.body)
-                        .lineLimit(1)
-
-                    HStack(spacing: 6) {
-                        Text(skill.scene)
-                            .font(.custom("PingFang SC", size: 10.5).weight(.regular))
-                        Text("·")
-                        Text(skill.command)
-                            .font(.system(size: 10.5, weight: .medium, design: .monospaced))
-                    }
-                    .foregroundStyle(PaletteColors.faint)
-                }
-            }
-            .padding(.horizontal, 14)
-            .padding(.vertical, 12)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background((isCopied ? PaletteColors.roseSoft.opacity(0.72) : Color.white.opacity(0.84)), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-            .overlay(
-                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .stroke(isCopied ? PaletteColors.rose.opacity(0.34) : PaletteColors.stroke, lineWidth: 1)
-            )
-            .shadow(color: Color(red: 0.32, green: 0.25, blue: 0.39).opacity(isCopied ? 0.075 : 0.042), radius: 12, x: 0, y: 6)
-            .contentShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
         }
-        .buttonStyle(.plain)
-        .help("点击复制：\(skill.title)")
-    }
-
-    private func sidebarIcon(_ name: String, isSelected: Bool) -> some View {
-        Image(systemName: name)
-            .font(.system(size: 12, weight: .semibold))
-            .symbolRenderingMode(.monochrome)
-            .foregroundStyle(isSelected ? PaletteColors.rose : PaletteColors.muted)
-            .frame(width: 25, height: 25)
-            .background(isSelected ? Color.white.opacity(0.88) : Color.white.opacity(0.42), in: Circle())
-    }
-
-    private func skillIcon(_ name: String, isCopied: Bool) -> some View {
-        Text(name)
-            .font(.system(size: 20))
-            .frame(width: 38, height: 38)
-            .background((isCopied ? Color.white.opacity(0.68) : Color.white.opacity(0.58)), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
-            .overlay(
-                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .stroke(Color.white.opacity(0.70), lineWidth: 1)
-            )
-    }
-
-    private func copyBadge(isCopied: Bool) -> some View {
-        HStack(spacing: 4) {
-            Image(systemName: isCopied ? "checkmark.circle.fill" : "doc.on.doc")
-                .font(.system(size: 10.5, weight: .semibold))
-            Text(isCopied ? "已复制" : "复制")
-                .font(.custom("PingFang SC", size: 11).weight(.medium))
-        }
-        .foregroundStyle(isCopied ? PaletteColors.rose : PaletteColors.muted)
-        .padding(.horizontal, 8)
-        .padding(.vertical, 4)
-        .background(Color.white.opacity(isCopied ? 0.72 : 0.54), in: Capsule())
     }
 
     private func copiedToast(title: String) -> some View {
@@ -636,6 +562,143 @@ struct SidebarRow: View {
             return PaletteColors.roseSoft.opacity(0.34)
         }
         return Color.white.opacity(0.42)
+    }
+}
+
+struct SkillCardRow: View {
+    let skill: Skill
+    let isCopied: Bool
+    let onCopy: () -> Void
+
+    @State private var isHovering = false
+    @GestureState private var isPressing = false
+
+    var body: some View {
+        HStack(alignment: .center, spacing: 13) {
+            skillIcon
+
+            VStack(alignment: .leading, spacing: 7) {
+                HStack(alignment: .top, spacing: 10) {
+                    Text(skill.title)
+                        .font(.custom("PingFang SC", size: 15).weight(.semibold))
+                        .foregroundStyle(PaletteColors.ink)
+                        .lineLimit(1)
+                    Spacer()
+                    copyBadge
+                }
+
+                Text(skill.detail)
+                    .font(.custom("PingFang SC", size: 12.5).weight(.regular))
+                    .foregroundStyle(PaletteColors.body)
+                    .lineLimit(1)
+
+                HStack(spacing: 6) {
+                    Text(skill.scene)
+                        .font(.custom("PingFang SC", size: 10.5).weight(.regular))
+                    Text("·")
+                    Text(skill.command)
+                        .font(.system(size: 10.5, weight: .medium, design: .monospaced))
+                }
+                .foregroundStyle(PaletteColors.faint)
+            }
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 12)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(cardBackground, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .stroke(cardStroke, lineWidth: isHovering || isCopied ? 1 : 0.8)
+        )
+        .shadow(color: Color(red: 0.32, green: 0.25, blue: 0.39).opacity(shadowOpacity), radius: isHovering ? 15 : 12, x: 0, y: isHovering ? 8 : 6)
+        .scaleEffect(isPressing ? 0.992 : 1.0)
+        .offset(y: isHovering && !isPressing ? -1 : 0)
+        .contentShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .onHover { hovering in
+            withAnimation(.easeOut(duration: 0.13)) {
+                isHovering = hovering
+            }
+        }
+        .gesture(
+            DragGesture(minimumDistance: 0)
+                .updating($isPressing) { _, state, _ in
+                    state = true
+                }
+                .onEnded { _ in
+                    onCopy()
+                }
+        )
+        .animation(.easeOut(duration: 0.14), value: isCopied)
+        .animation(.easeOut(duration: 0.10), value: isPressing)
+        .help("点击复制：\(skill.title)")
+        .accessibilityElement(children: .ignore)
+        .accessibilityAddTraits(.isButton)
+        .accessibilityLabel("复制 \(skill.title)")
+    }
+
+    private var cardBackground: Color {
+        if isCopied {
+            return PaletteColors.roseSoft.opacity(isPressing ? 0.82 : 0.72)
+        }
+        if isHovering || isPressing {
+            return Color.white.opacity(isPressing ? 0.92 : 0.90)
+        }
+        return Color.white.opacity(0.84)
+    }
+
+    private var cardStroke: Color {
+        if isCopied {
+            return PaletteColors.rose.opacity(0.34)
+        }
+        if isHovering || isPressing {
+            return PaletteColors.rose.opacity(0.14)
+        }
+        return PaletteColors.stroke
+    }
+
+    private var shadowOpacity: Double {
+        if isCopied {
+            return 0.08
+        }
+        if isHovering || isPressing {
+            return 0.065
+        }
+        return 0.042
+    }
+
+    private var skillIcon: some View {
+        Text(skill.icon)
+            .font(.system(size: 20))
+            .frame(width: 38, height: 38)
+            .background(iconBackground, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .stroke(Color.white.opacity(isHovering || isCopied ? 0.82 : 0.70), lineWidth: 1)
+            )
+            .scaleEffect(isPressing ? 0.94 : 1.0)
+    }
+
+    private var iconBackground: Color {
+        if isCopied {
+            return Color.white.opacity(0.68)
+        }
+        if isHovering || isPressing {
+            return PaletteColors.roseSoft.opacity(0.30)
+        }
+        return Color.white.opacity(0.58)
+    }
+
+    private var copyBadge: some View {
+        HStack(spacing: 4) {
+            Image(systemName: isCopied ? "checkmark.circle.fill" : "doc.on.doc")
+                .font(.system(size: 10.5, weight: .semibold))
+            Text(isCopied ? "已复制" : "复制")
+                .font(.custom("PingFang SC", size: 11).weight(.medium))
+        }
+        .foregroundStyle(isCopied ? PaletteColors.rose : (isHovering ? PaletteColors.body : PaletteColors.muted))
+        .padding(.horizontal, 8)
+        .padding(.vertical, 4)
+        .background(Color.white.opacity(isCopied ? 0.74 : (isHovering ? 0.68 : 0.54)), in: Capsule())
     }
 }
 
