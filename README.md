@@ -1,6 +1,25 @@
 # 灵感指令台 / AI Skill Palette
 
-一个 macOS 全局悬浮提示词面板，给 Codex 桌面端、Claude Code、Cursor、终端、网页 AI 都能用。
+![灵感指令台截图](screenshots/ai-skill-palette-v1.png)
+
+灵感指令台是一个给 UX / 产品设计师使用的 macOS 全局悬浮 AI 工作流操作台。
+
+它不是单纯的 prompt 收藏夹，而是把产品设计、界面评审、视觉打磨、设计系统沉淀、上线检查和复盘整理这些常见工作，拆成可以一键复制的 AI 工作流指令。适合在 Codex、Claude Code、Cursor、终端或网页 AI 工具里使用。
+
+## 适合谁
+
+- 经常用 AI 做网页、原型、小工具和 vibecoding 的 UX / 产品设计师
+- 想让 AI 生成结果更好看、更一致、更像真实产品的人
+- 记不住各种 design skills / prompt，但希望随时快速调用的人
+- 想把自己的设计判断、复盘和 AI 协作经验沉淀下来的人
+
+## 它解决什么问题
+
+- 不想每次重新写长 prompt
+- 不知道当前场景应该用哪个 design skill
+- 第一页效果满意，但第二页、第三页开始跑偏
+- AI 生成的页面有 AI 味、交互状态缺失、上线前容易漏检查
+- 新开 AI 对话时，之前解决过的问题又要重新解释一遍
 
 ## 形态
 
