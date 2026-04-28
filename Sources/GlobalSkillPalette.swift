@@ -368,30 +368,9 @@ struct SkillPaletteView: View {
                 ForEach(sceneGroups) { group in
                     let isSelected = selectedScene == group.id
 
-                    HStack(spacing: 10) {
-                        sidebarIcon(group.icon, isSelected: isSelected)
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(group.title)
-                                .font(.custom("PingFang SC", size: 13).weight(.medium))
-                                .foregroundStyle(isSelected ? PaletteColors.ink : PaletteColors.body)
-                                .lineLimit(1)
-                            Text(group.subtitle)
-                                .font(.custom("PingFang SC", size: 10.5).weight(.regular))
-                                .foregroundStyle(isSelected ? PaletteColors.muted : PaletteColors.faint)
-                                .lineLimit(1)
-                        }
-                        Spacer(minLength: 0)
-                    }
-                    .padding(.horizontal, 10)
-                    .frame(maxWidth: .infinity, minHeight: 48, maxHeight: 48, alignment: .leading)
-                    .background(isSelected ? PaletteColors.roseSoft.opacity(0.62) : Color.clear, in: RoundedRectangle(cornerRadius: 15, style: .continuous))
-                    .contentShape(RoundedRectangle(cornerRadius: 15, style: .continuous))
-                    .onTapGesture {
+                    SidebarRow(group: group, isSelected: isSelected) {
                         selectedScene = group.id
                     }
-                    .accessibilityElement(children: .ignore)
-                    .accessibilityAddTraits(.isButton)
-                    .accessibilityLabel("\(group.title)，\(group.subtitle)")
                 }
             }
 
@@ -564,6 +543,99 @@ struct SkillPaletteView: View {
                 }
             }
         }
+    }
+}
+
+struct SidebarRow: View {
+    let group: SceneGroup
+    let isSelected: Bool
+    let onSelect: () -> Void
+
+    @State private var isHovering = false
+    @GestureState private var isPressing = false
+
+    var body: some View {
+        HStack(spacing: 10) {
+            sidebarIcon
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(group.title)
+                    .font(.custom("PingFang SC", size: 13).weight(.medium))
+                    .foregroundStyle(isSelected ? PaletteColors.ink : PaletteColors.body)
+                    .lineLimit(1)
+                Text(group.subtitle)
+                    .font(.custom("PingFang SC", size: 10.5).weight(.regular))
+                    .foregroundStyle(isSelected ? PaletteColors.muted : PaletteColors.faint)
+                    .lineLimit(1)
+            }
+
+            Spacer(minLength: 0)
+        }
+        .padding(.horizontal, 10)
+        .frame(maxWidth: .infinity, minHeight: 48, maxHeight: 48, alignment: .leading)
+        .background(rowBackground, in: RoundedRectangle(cornerRadius: 15, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 15, style: .continuous)
+                .stroke(rowStroke, lineWidth: isHovering || isSelected ? 1 : 0)
+        )
+        .scaleEffect(isPressing ? 0.985 : 1.0)
+        .contentShape(RoundedRectangle(cornerRadius: 15, style: .continuous))
+        .onHover { hovering in
+            withAnimation(.easeOut(duration: 0.12)) {
+                isHovering = hovering
+            }
+        }
+        .gesture(
+            DragGesture(minimumDistance: 0)
+                .updating($isPressing) { _, state, _ in
+                    state = true
+                }
+                .onEnded { _ in
+                    onSelect()
+                }
+        )
+        .animation(.easeOut(duration: 0.14), value: isSelected)
+        .animation(.easeOut(duration: 0.10), value: isPressing)
+        .accessibilityElement(children: .ignore)
+        .accessibilityAddTraits(.isButton)
+        .accessibilityLabel("\(group.title)，\(group.subtitle)")
+    }
+
+    private var rowBackground: Color {
+        if isSelected {
+            return PaletteColors.roseSoft.opacity(isPressing ? 0.78 : 0.62)
+        }
+        if isHovering || isPressing {
+            return Color.white.opacity(isPressing ? 0.72 : 0.52)
+        }
+        return Color.clear
+    }
+
+    private var rowStroke: Color {
+        if isSelected {
+            return PaletteColors.rose.opacity(0.16)
+        }
+        return Color.white.opacity(0.58)
+    }
+
+    private var sidebarIcon: some View {
+        Image(systemName: group.icon)
+            .font(.system(size: 12, weight: .semibold))
+            .symbolRenderingMode(.monochrome)
+            .foregroundStyle(isSelected ? PaletteColors.rose : PaletteColors.muted)
+            .frame(width: 25, height: 25)
+            .background(iconBackground, in: Circle())
+            .scaleEffect(isPressing ? 0.94 : 1.0)
+    }
+
+    private var iconBackground: Color {
+        if isSelected {
+            return Color.white.opacity(0.88)
+        }
+        if isHovering || isPressing {
+            return PaletteColors.roseSoft.opacity(0.34)
+        }
+        return Color.white.opacity(0.42)
     }
 }
 
