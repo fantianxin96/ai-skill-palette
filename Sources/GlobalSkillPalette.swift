@@ -373,6 +373,7 @@ struct SkillPaletteView: View {
                     }
                 }
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
 
             Spacer()
         }
@@ -498,13 +499,15 @@ struct SidebarRow: View {
             Spacer(minLength: 0)
         }
         .padding(.horizontal, 10)
-        .frame(maxWidth: .infinity, minHeight: 48, maxHeight: 48, alignment: .leading)
+        .frame(width: 146, height: 48, alignment: .leading)
         .background(rowBackground, in: RoundedRectangle(cornerRadius: 15, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: 15, style: .continuous)
-                .stroke(rowStroke, lineWidth: isHovering || isSelected ? 1 : 0)
+                .stroke(rowStroke, lineWidth: isHovering || isSelected || isPressing ? 1 : 0)
         )
-        .scaleEffect(isPressing ? 0.985 : 1.0)
+        .shadow(color: Color(red: 0.32, green: 0.25, blue: 0.39).opacity(rowShadowOpacity), radius: isHovering ? 9 : 0, x: 0, y: isHovering ? 4 : 0)
+        .scaleEffect(isPressing ? 0.988 : 1.0)
+        .offset(y: isHovering && !isPressing ? -0.5 : 0)
         .contentShape(RoundedRectangle(cornerRadius: 15, style: .continuous))
         .onHover { hovering in
             withAnimation(.easeOut(duration: 0.12)) {
@@ -532,7 +535,7 @@ struct SidebarRow: View {
             return PaletteColors.roseSoft.opacity(isPressing ? 0.78 : 0.62)
         }
         if isHovering || isPressing {
-            return Color.white.opacity(isPressing ? 0.72 : 0.52)
+            return Color.white.opacity(isPressing ? 0.80 : 0.68)
         }
         return Color.clear
     }
@@ -541,7 +544,17 @@ struct SidebarRow: View {
         if isSelected {
             return PaletteColors.rose.opacity(0.16)
         }
-        return Color.white.opacity(0.58)
+        return PaletteColors.stroke.opacity(isHovering || isPressing ? 1.8 : 1.0)
+    }
+
+    private var rowShadowOpacity: Double {
+        if isSelected {
+            return 0.018
+        }
+        if isHovering || isPressing {
+            return 0.035
+        }
+        return 0
     }
 
     private var sidebarIcon: some View {
