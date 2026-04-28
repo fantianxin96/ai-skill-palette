@@ -551,15 +551,11 @@ struct SidebarRow: View {
             .foregroundStyle(isSelected ? PaletteColors.rose : PaletteColors.muted)
             .frame(width: 25, height: 25)
             .background(iconBackground, in: Circle())
-            .scaleEffect(isPressing ? 0.94 : 1.0)
     }
 
     private var iconBackground: Color {
         if isSelected {
             return Color.white.opacity(0.88)
-        }
-        if isHovering || isPressing {
-            return PaletteColors.roseSoft.opacity(0.34)
         }
         return Color.white.opacity(0.42)
     }
@@ -673,17 +669,13 @@ struct SkillCardRow: View {
             .background(iconBackground, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
             .overlay(
                 RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .stroke(Color.white.opacity(isHovering || isCopied ? 0.82 : 0.70), lineWidth: 1)
+                    .stroke(Color.white.opacity(isCopied ? 0.82 : 0.70), lineWidth: 1)
             )
-            .scaleEffect(isPressing ? 0.94 : 1.0)
     }
 
     private var iconBackground: Color {
         if isCopied {
             return Color.white.opacity(0.68)
-        }
-        if isHovering || isPressing {
-            return PaletteColors.roseSoft.opacity(0.30)
         }
         return Color.white.opacity(0.58)
     }
@@ -695,10 +687,10 @@ struct SkillCardRow: View {
             Text(isCopied ? "已复制" : "复制")
                 .font(.custom("PingFang SC", size: 11).weight(.medium))
         }
-        .foregroundStyle(isCopied ? PaletteColors.rose : (isHovering ? PaletteColors.body : PaletteColors.muted))
+        .foregroundStyle(isCopied ? PaletteColors.rose : PaletteColors.muted)
         .padding(.horizontal, 8)
         .padding(.vertical, 4)
-        .background(Color.white.opacity(isCopied ? 0.74 : (isHovering ? 0.68 : 0.54)), in: Capsule())
+        .background(Color.white.opacity(isCopied ? 0.74 : 0.54), in: Capsule())
     }
 }
 
