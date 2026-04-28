@@ -24,6 +24,42 @@ final class PromptStore {
             prompt: "请使用 $i-shape，以产品经理视角帮我理清这个功能需求。先不要写代码，先帮我梳理：目标用户、核心场景、用户路径、必须保留的体验、可以砍掉的复杂度、以及你认为更好的产品建议。最后给我一个清晰的需求 brief 和下一步执行建议。"
         ),
         Skill(
+            category: "想清楚",
+            stage: "开始前",
+            icon: "🧶",
+            title: "需求来源综合",
+            command: "$i-synthesize",
+            detail: "反馈、访谈、竞品、机会点",
+            prompt: "请使用 $i-synthesize，帮我把这些用户反馈、想法、竞品观察或聊天记录综合成产品洞察。请先区分事实、假设和个人感受，再提炼高频主题、真实用户问题、情绪动机、机会点和下一步可以验证的设计方向。不要直接跳到方案。"
+        ),
+        Skill(
+            category: "想清楚",
+            stage: "开始前",
+            icon: "🗺️",
+            title: "页面路径规划",
+            command: "$i-shape",
+            detail: "信息架构、页面清单、关键路径",
+            prompt: "请使用 $i-shape，帮我把这个产品/功能拆成清晰的页面路径。请梳理用户从进入、理解、操作、反馈到完成的完整路径，列出需要哪些页面/弹窗/状态，每个页面的目标、核心内容、主要操作和容易漏掉的边界情况。先不要写代码。"
+        ),
+        Skill(
+            category: "想清楚",
+            stage: "开始前",
+            icon: "🎯",
+            title: "MVP 范围切分",
+            command: "$i-shape",
+            detail: "先做什么、砍掉什么、后做什么",
+            prompt: "请使用 $i-shape，帮我把当前想法切成一个能快速做出来的 MVP。请明确：必须做的核心体验、可以暂时砍掉的复杂功能、后续版本再做的增强项、第一版验收标准，以及为了不把产品做散需要坚持的体验原则。"
+        ),
+        Skill(
+            category: "想清楚",
+            stage: "开始前",
+            icon: "🧩",
+            title: "从需求到上线路线",
+            command: "flow",
+            detail: "需求、页面、设计、实现、验收",
+            prompt: "请按 UX / 产品设计师的 AI 工作流帮我推进这个功能：1. 先用 $i-shape 梳理需求和用户路径；2. 再列页面清单和 MVP 范围；3. 如果已有满意页面，使用 $i-system 定设计基准；4. 实现前给出任务拆分；5. 上线前使用 $i-audit / $i-handoff 做验收。先给路线图和下一步，不要直接写代码。"
+        ),
+        Skill(
             category: "评审",
             stage: "评审时",
             icon: "🔍",
@@ -114,6 +150,33 @@ final class PromptStore {
             prompt: "请使用 $i-colorize，优化当前界面的色彩系统。目标是更有氛围但不花哨，颜色要柔和、克制、有层次。请检查首页、按钮、卡片、弹窗、弱文本对比度。"
         ),
         Skill(
+            category: "调风格",
+            stage: "评审时",
+            icon: "🪞",
+            title: "反 AI 味审美诊断",
+            command: "$i-critique",
+            detail: "模板感、廉价感、泛化设计",
+            prompt: "请使用 $i-critique，专门从“反 AI 味”和审美可信度角度评审当前界面。请指出哪些地方显得模板化、泛化、廉价、过度平均或像默认 AI 产物；再给出优先级最高的 3-5 个改法。先不要直接改代码。"
+        ),
+        Skill(
+            category: "调风格",
+            stage: "开始前",
+            icon: "🖼️",
+            title: "参考图风格提炼",
+            command: "$i-impeccable",
+            detail: "从灵感图提取可用设计语言",
+            prompt: "请使用 $i-impeccable extract，基于我给的参考图或视觉灵感，提炼它的设计语言。请总结：色彩氛围、字体气质、留白节奏、组件形状、插画/图标语法、情绪关键词，以及哪些适合迁移到当前产品、哪些不适合照搬。先输出风格提炼，不要直接改代码。"
+        ),
+        Skill(
+            category: "调风格",
+            stage: "打磨中",
+            icon: "💎",
+            title: "普通页面变高级",
+            command: "$i-bolder",
+            detail: "保留可用性，提升气质记忆点",
+            prompt: "请使用 $i-bolder，把当前页面从“能用但普通”提升到更有审美记忆点。请重点优化视觉层级、节奏、主视觉、空白、组件质感和关键动作存在感；不要堆渐变、装饰和大而空的 hero。先指出普通感来自哪里，再小步修改。"
+        ),
+        Skill(
             category: "交互",
             stage: "开发中",
             icon: "〰️",
@@ -177,6 +240,24 @@ final class PromptStore {
             prompt: "请使用 $i-harden，把当前界面加固到更接近真实可用。重点检查空状态、错误状态、长文本溢出、极端内容、加载失败、国际化长度、移动端边界情况。先列出风险，再小步修复。"
         ),
         Skill(
+            category: "适配上线",
+            stage: "交付前",
+            icon: "📦",
+            title: "开发交付 Brief",
+            command: "$i-handoff",
+            detail: "组件、状态、边界、设计意图",
+            prompt: "请使用 $i-handoff，把当前页面/功能整理成开发或 AI 继续实现可用的交付 brief。请包含：功能目标、用户路径、页面结构、组件清单、状态清单、响应式要求、可访问性要求、不能改坏的设计意图，以及建议的实现顺序。"
+        ),
+        Skill(
+            category: "适配上线",
+            stage: "上线前",
+            icon: "🧾",
+            title: "验收标准清单",
+            command: "$i-handoff",
+            detail: "可测试的上线检查项",
+            prompt: "请使用 $i-handoff，为当前功能整理一份上线前验收标准。请写成可勾选清单，覆盖视觉一致性、交互状态、移动端、安全区、空/错/loading 状态、文案、可访问性、性能和真实边界情况。每条标准都要能被实际验证。"
+        ),
+        Skill(
             category: "设计",
             stage: "打磨中",
             icon: "🚀",
@@ -220,6 +301,42 @@ final class PromptStore {
             command: "flow",
             detail: "适合新功能开局",
             prompt: "请按这个顺序帮我推进：1. 使用 $i-shape 先理清产品需求和用户路径；2. 使用 $i-critique 做 UI/UX 评审；3. 根据评审结果选择 $i-typeset / $i-layout / $i-polish 做修改。先不要一上来写代码，先告诉我你理解的目标和优先级。"
+        ),
+        Skill(
+            category: "复盘沉淀",
+            stage: "收尾时",
+            icon: "🧠",
+            title: "AI 协作复盘",
+            command: "$i-recap",
+            detail: "让新对话别重复踩坑",
+            prompt: "请使用 $i-recap，帮我做一次 AI 协作复盘。请总结这次过程中 AI 起初误解了什么、遇到过什么问题、后来怎么解决、哪些文件/命令/决策以后新开对话必须告诉 AI，以及下次开局可以直接贴给 AI 的上下文 brief。"
+        ),
+        Skill(
+            category: "复盘沉淀",
+            stage: "收尾时",
+            icon: "✍️",
+            title: "设计思路复盘",
+            command: "$i-recap",
+            detail: "记录判断、取舍和学到的东西",
+            prompt: "请使用 $i-recap，帮我做一次设计思路复盘。请按时间线整理：最初的问题、我为什么不满意、关键审美/产品判断是什么、哪些尝试被放弃、最终方案为什么更好、我从中学到了什么。语气可以像写给未来自己的设计笔记。"
+        ),
+        Skill(
+            category: "复盘沉淀",
+            stage: "收尾时",
+            icon: "📝",
+            title: "下次开局上下文",
+            command: "$i-recap",
+            detail: "给新窗口的一段项目说明",
+            prompt: "请使用 $i-recap，帮我生成一份可以直接贴到新 AI 对话里的项目上下文。请包含：项目目标、当前版本、重要文件路径、设计方向、已经确定不能改坏的体验、已解决的问题、仍待处理的问题、下一步建议。要求短而完整。"
+        ),
+        Skill(
+            category: "复盘沉淀",
+            stage: "收尾时",
+            icon: "📣",
+            title: "社交媒体整理",
+            command: "$i-recap",
+            detail: "把项目过程写成分享内容",
+            prompt: "请使用 $i-recap，帮我把这个项目过程整理成一篇适合发社交媒体的设计/AI 协作分享。请保留真实转折和学习，不要写成营销稿；结构包含：我想解决什么、过程中踩到什么坑、关键转折、最后沉淀的方法、对其他设计师有什么启发。"
         )
     ]
 }
@@ -240,11 +357,15 @@ let sceneGroups: [SceneGroup] = [
     SceneGroup(id: "调风格", title: "调风格", subtitle: "色彩质感性格", icon: "paintpalette"),
     SceneGroup(id: "调交互", title: "调交互", subtitle: "动效反馈惊喜", icon: "waveform"),
     SceneGroup(id: "适配上线", title: "适配上线", subtitle: "手机性能加固", icon: "checkmark.seal"),
-    SceneGroup(id: "删减沉淀", title: "删减沉淀", subtitle: "去噪和复盘", icon: "scissors")
+    SceneGroup(id: "复盘沉淀", title: "复盘沉淀", subtitle: "去噪和记下来", icon: "scissors")
 ]
 
 extension Skill {
     var scene: String {
+        if sceneGroups.contains(where: { $0.id == category }) {
+            return category
+        }
+
         switch command {
         case "$i-shape", "$i-impeccable", "flow":
             return "想清楚"
@@ -258,10 +379,10 @@ extension Skill {
             return "调风格"
         case "$i-animate", "$i-delight", "$i-overdrive":
             return "调交互"
-        case "$i-adapt", "$i-optimize", "$i-audit", "$i-harden":
+        case "$i-adapt", "$i-optimize", "$i-audit", "$i-harden", "$i-handoff":
             return "适配上线"
-        case "$i-distill":
-            return "删减沉淀"
+        case "$i-distill", "$i-recap":
+            return "复盘沉淀"
         default:
             return category
         }
@@ -429,7 +550,7 @@ struct SkillPaletteView: View {
             Image(systemName: "magnifyingglass")
                 .font(.system(size: 13, weight: .semibold))
                 .foregroundStyle(PaletteColors.muted)
-            TextField("全局搜索：需求、评审、字体、布局、动效...", text: $query)
+            TextField("全局搜索：需求、评审、字体、布局、动效、复盘...", text: $query)
                 .textFieldStyle(.plain)
                 .font(.custom("PingFang SC", size: 14).weight(.regular))
                 .foregroundStyle(PaletteColors.ink)

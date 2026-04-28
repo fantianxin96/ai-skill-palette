@@ -13,13 +13,14 @@
 ## 场景分组（v1.0）
 
 - 想清楚：`$i-shape` / `$i-impeccable` / 一条龙工作流
+- 需求综合：`$i-synthesize`
 - 找问题：`$i-critique`
 - 定系统：`$i-system` / `$i-consistency`
 - 调排版：`$i-typeset` / `$i-layout` / `$i-clarify`
 - 调风格：`$i-colorize` / `$i-bolder` / `$i-quieter` / `$i-polish`
 - 调交互：`$i-animate` / `$i-delight` / `$i-overdrive`
-- 适配上线：`$i-adapt` / `$i-optimize` / `$i-audit` / `$i-harden`
-- 删减沉淀：`$i-distill`
+- 适配上线：`$i-adapt` / `$i-optimize` / `$i-audit` / `$i-harden` / `$i-handoff`
+- 复盘沉淀：`$i-distill` / `$i-recap`
 
 ## 附带 Codex Skills
 
@@ -28,9 +29,12 @@
 ```text
 ~/.codex/skills/i-system/SKILL.md
 ~/.codex/skills/i-consistency/SKILL.md
+~/.codex/skills/i-synthesize/SKILL.md
+~/.codex/skills/i-handoff/SKILL.md
+~/.codex/skills/i-recap/SKILL.md
 ```
 
-如果换电脑，可以把 `skills/i-system` 和 `skills/i-consistency` 复制到新机器的 `~/.codex/skills/` 目录。
+如果换电脑，可以把 `skills/` 里的对应目录复制到新机器的 `~/.codex/skills/` 目录。
 
 ## 构建
 
@@ -58,7 +62,7 @@ dist/AI Skill Palette.app
    - `调风格`：整体审美、颜色、质感、强弱需要调整。
    - `调交互`：动效、反馈、愉悦感或高级交互。
    - `适配上线`：移动端、性能、可访问性、真实边界。
-   - `删减沉淀`：删复杂度、去噪、沉淀成自己的方法。
+   - `复盘沉淀`：删复杂度、去噪、记录 AI 协作和设计思路。
 6. 点击条目后 prompt 会复制到剪贴板，面板里会显示“已复制”和下一步提示。
 7. 回到 Codex / Claude Code 输入框，按 `⌘V`。
 
