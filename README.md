@@ -13,12 +13,13 @@
 ## 场景分组（v1.0）
 
 - 想清楚：`$i-shape` / `$i-impeccable` / 一条龙工作流
-- 找问题：`$i-critique` / `$i-consistency`
+- 找问题：`$i-critique`
+- 定系统：`$i-system` / `$i-consistency`
 - 调排版：`$i-typeset` / `$i-layout` / `$i-clarify`
 - 调风格：`$i-colorize` / `$i-bolder` / `$i-quieter` / `$i-polish`
 - 调交互：`$i-animate` / `$i-delight` / `$i-overdrive`
 - 适配上线：`$i-adapt` / `$i-optimize` / `$i-audit` / `$i-harden`
-- 删减沉淀：`$i-distill` / `$i-system`
+- 删减沉淀：`$i-distill`
 
 ## 附带 Codex Skills
 

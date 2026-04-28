@@ -33,13 +33,40 @@ final class PromptStore {
             prompt: "请使用 $i-critique，对当前页面/功能做一次 UI/UX 设计评审。请从视觉层级、信息架构、移动端体验、交互反馈、情绪感受、反 AI 味、可用性问题来评估。先给评分和优先级问题，不要直接改代码。"
         ),
         Skill(
-            category: "评审",
-            stage: "评审时",
+            category: "系统",
+            stage: "定系统",
+            icon: "📌",
+            title: "从满意页提炼规范",
+            command: "$i-system",
+            detail: "提取字体、颜色、间距、组件",
+            prompt: "请使用 $i-system，从当前我已经满意的页面/组件里提取设计系统。请沉淀颜色、字体层级、间距、圆角、阴影、卡片、按钮、弹窗、动效状态、移动端规则和文案语气，写成项目里的 DESIGN.md。目标是让后续第二页、第三页都能延续同一套视觉语言。"
+        ),
+        Skill(
+            category: "系统",
+            stage: "定系统",
+            icon: "🧭",
+            title: "新页面基准确认",
+            command: "$i-system",
+            detail: "开新页前定规则和边界",
+            prompt: "请使用 $i-system，在开始新页面之前，基于项目里的 DESIGN.md 或已满意的参考页面，帮我确认这次新页面应该沿用哪些设计规则。请明确：必须保持一致的字体、颜色、间距、按钮、卡片、弹窗和文案语气；可以根据页面功能变化的部分；以及本页不能破坏的设计边界。先给基准清单，不要直接写代码。"
+        ),
+        Skill(
+            category: "系统",
+            stage: "定系统",
             icon: "🧷",
-            title: "多页面一致性",
+            title: "风格漂移校准",
             command: "$i-consistency",
             detail: "字体、颜色、间距、组件、状态",
             prompt: "请使用 $i-consistency，基于项目中的 DESIGN.md 或我已经满意的第一页，检查当前页面是否与参考页面保持一致。重点看字体层级、颜色、间距、卡片、按钮、弹窗、hover/active/loading 状态、移动端表现和文案语气。先给一致性评分和优先级问题；如果需要修改，请只做对齐，不要重新设计。"
+        ),
+        Skill(
+            category: "系统",
+            stage: "定系统",
+            icon: "🗂️",
+            title: "阶段复盘升级系统",
+            command: "$i-system",
+            detail: "更新 DESIGN.md 和组件规则",
+            prompt: "请使用 $i-system，对当前项目做一次阶段性设计系统复盘。请检查实际页面里已经稳定复用的颜色、字体、间距、组件、状态、移动端规则和文案语气，并更新 DESIGN.md：保留有效规则，删掉没有继续使用的规则，补充新出现的组件状态和边界情况。先列出建议改动，再更新文档。"
         ),
         Skill(
             category: "设计",
@@ -112,15 +139,6 @@ final class PromptStore {
             command: "$i-distill",
             detail: "删掉不必要的元素和流程",
             prompt: "请使用 $i-distill，帮我简化当前功能和界面。请指出哪些元素、文案、交互或视觉装饰可以删掉，让核心体验更清楚。先给清单，再小步执行。"
-        ),
-        Skill(
-            category: "沉淀",
-            stage: "收尾时",
-            icon: "📌",
-            title: "设计系统沉淀",
-            command: "$i-system",
-            detail: "把满意页面提炼成 DESIGN.md",
-            prompt: "请使用 $i-system，从当前我满意的页面/组件里提取设计系统。请沉淀颜色、字体层级、间距、圆角、阴影、卡片、按钮、弹窗、动效状态、移动端规则和文案语气，写成项目里的 DESIGN.md。目标是让后续第二页、第三页都能延续同一套视觉语言。"
         ),
         Skill(
             category: "适配",
@@ -217,6 +235,7 @@ let sceneGroups: [SceneGroup] = [
     SceneGroup(id: "全部", title: "全部", subtitle: "所有提示词", icon: "command"),
     SceneGroup(id: "想清楚", title: "想清楚", subtitle: "需求目标路径", icon: "diamond"),
     SceneGroup(id: "找问题", title: "找问题", subtitle: "评审和诊断", icon: "magnifyingglass"),
+    SceneGroup(id: "定系统", title: "定系统", subtitle: "风格规则一致", icon: "pin"),
     SceneGroup(id: "调排版", title: "调排版", subtitle: "字体布局文案", icon: "text.alignleft"),
     SceneGroup(id: "调风格", title: "调风格", subtitle: "色彩质感性格", icon: "paintpalette"),
     SceneGroup(id: "调交互", title: "调交互", subtitle: "动效反馈惊喜", icon: "waveform"),
@@ -229,8 +248,10 @@ extension Skill {
         switch command {
         case "$i-shape", "$i-impeccable", "flow":
             return "想清楚"
-        case "$i-critique", "$i-consistency":
+        case "$i-critique":
             return "找问题"
+        case "$i-system", "$i-consistency":
+            return "定系统"
         case "$i-typeset", "$i-layout", "$i-clarify":
             return "调排版"
         case "$i-colorize", "$i-bolder", "$i-quieter", "$i-polish":
@@ -239,7 +260,7 @@ extension Skill {
             return "调交互"
         case "$i-adapt", "$i-optimize", "$i-audit", "$i-harden":
             return "适配上线"
-        case "$i-distill", "$i-system":
+        case "$i-distill":
             return "删减沉淀"
         default:
             return category
@@ -323,7 +344,7 @@ struct SkillPaletteView: View {
                 .transition(.move(edge: .bottom).combined(with: .opacity))
             }
         }
-        .frame(width: 720, height: 600)
+        .frame(width: 720, height: 620)
         .onAppear {
             selectedScene = "全部"
             query = ""
@@ -730,7 +751,7 @@ final class PaletteController: NSObject {
 
     override init() {
         panel = NSPanel(
-            contentRect: NSRect(x: 0, y: 0, width: 720, height: 600),
+            contentRect: NSRect(x: 0, y: 0, width: 720, height: 620),
             styleMask: [.nonactivatingPanel, .titled, .fullSizeContentView],
             backing: .buffered,
             defer: false
