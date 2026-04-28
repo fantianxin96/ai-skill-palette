@@ -14,7 +14,7 @@
 
 - 想清楚：`$i-shape` / `$i-impeccable` / 一条龙工作流
 - 需求综合：`$i-synthesize`
-- 找问题：`$i-critique`
+- 找问题：`$i-critique` / `$i-web-interact` / `$i-app-interact`
 - 定系统：`$i-system` / `$i-consistency`
 - 调排版：`$i-typeset` / `$i-layout` / `$i-clarify`
 - 调风格：`$i-colorize` / `$i-bolder` / `$i-quieter` / `$i-polish`
@@ -32,6 +32,8 @@
 ~/.codex/skills/i-synthesize/SKILL.md
 ~/.codex/skills/i-handoff/SKILL.md
 ~/.codex/skills/i-recap/SKILL.md
+~/.codex/skills/i-web-interact/SKILL.md
+~/.codex/skills/i-app-interact/SKILL.md
 ```
 
 如果换电脑，可以把 `skills/` 里的对应目录复制到新机器的 `~/.codex/skills/` 目录。

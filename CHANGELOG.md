@@ -1,5 +1,20 @@
 # 灵感指令台版本记录
 
+## v1.0.9｜2026-04-28
+
+Web/App 交互检查拆分版。产品可见版本仍显示 `v1.0`，构建版本更新为 `109`。
+
+### 新增
+
+- 新增 Codex skill：`$i-web-interact`，专门检查 Web 页面/产品的交互状态完整度，覆盖 hover、focus、键盘、cursor、dropdown、popover、modal、toast、loading/success/error 等。
+- 新增 Codex skill：`$i-app-interact`，专门检查移动端 App 的触控手感和原生交互状态，覆盖 tap/pressed、手势、底部弹层、导航转场、键盘弹起、安全区、触控热区和系统手势冲突。
+- 「找问题」新增「Web 交互状态检查」和「App 触控手感检查」两张卡片。
+
+### 说明
+
+- 不再把 Web 端和移动端 App 的交互检查混在同一个 `i-animate` 场景里。
+- `i-animate` 继续负责动效和微交互优化；新的两个 skill 负责先诊断交互状态和反馈链路是否完整。
+
 ## v1.0.8｜2026-04-28
 
 UX 工作流场景化扩展版。产品可见版本仍显示 `v1.0`，构建版本更新为 `108`。

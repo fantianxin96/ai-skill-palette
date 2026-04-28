@@ -69,6 +69,24 @@ final class PromptStore {
             prompt: "请使用 $i-critique，对当前页面/功能做一次 UI/UX 设计评审。请从视觉层级、信息架构、移动端体验、交互反馈、情绪感受、反 AI 味、可用性问题来评估。先给评分和优先级问题，不要直接改代码。"
         ),
         Skill(
+            category: "评审",
+            stage: "评审时",
+            icon: "🖱️",
+            title: "Web 交互状态检查",
+            command: "$i-web-interact",
+            detail: "hover、focus、键盘、浏览器状态",
+            prompt: "请使用 $i-web-interact，对当前 Web 页面/产品做一次交互状态检查。请重点检查 hover、active/pressed、focus、disabled、selected、dropdown/popover、modal/toast、loading/success/error/retry、键盘操作、cursor 提示和响应式状态。先给交互完整度评分和优先级问题，不要直接加动效。"
+        ),
+        Skill(
+            category: "评审",
+            stage: "评审时",
+            icon: "📲",
+            title: "App 触控手感检查",
+            command: "$i-app-interact",
+            detail: "tap、手势、底部弹层、安全区",
+            prompt: "请使用 $i-app-interact，对当前移动端 App 页面/流程做一次触控手感检查。请重点检查 tap/pressed、selected、disabled、loading/success/error/retry、滑动/拖拽/长按、底部弹层、导航转场、键盘弹起、安全区、触控热区、系统手势冲突和反馈闭环。先给交互完整度评分和优先级问题，不要直接加动效。"
+        ),
+        Skill(
             category: "系统",
             stage: "定系统",
             icon: "📌",
@@ -369,7 +387,7 @@ extension Skill {
         switch command {
         case "$i-shape", "$i-impeccable", "flow":
             return "想清楚"
-        case "$i-critique":
+        case "$i-critique", "$i-web-interact", "$i-app-interact":
             return "找问题"
         case "$i-system", "$i-consistency":
             return "定系统"
