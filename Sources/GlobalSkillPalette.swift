@@ -364,43 +364,34 @@ struct SkillPaletteView: View {
                 .padding(.horizontal, 10)
                 .padding(.bottom, 2)
 
-            ScrollViewReader { proxy in
-                ScrollView(.vertical, showsIndicators: false) {
-                    VStack(alignment: .leading, spacing: 5) {
-                        ForEach(sceneGroups) { group in
-                            let isSelected = selectedScene == group.id
+            VStack(alignment: .leading, spacing: 5) {
+                ForEach(sceneGroups) { group in
+                    let isSelected = selectedScene == group.id
 
-                            Button {
-                                selectedScene = group.id
-                            } label: {
-                                HStack(spacing: 10) {
-                                    sidebarIcon(group.icon, isSelected: isSelected)
-                                    VStack(alignment: .leading, spacing: 2) {
-                                        Text(group.title)
-                                            .font(.custom("PingFang SC", size: 13).weight(.medium))
-                                            .foregroundStyle(isSelected ? PaletteColors.ink : PaletteColors.body)
-                                            .lineLimit(1)
-                                        Text(group.subtitle)
-                                            .font(.custom("PingFang SC", size: 10.5).weight(.regular))
-                                            .foregroundStyle(isSelected ? PaletteColors.muted : PaletteColors.faint)
-                                            .lineLimit(1)
-                                    }
-                                    Spacer(minLength: 0)
-                            }
-                            .padding(.horizontal, 10)
-                            .frame(height: 48)
-                            .background(isSelected ? PaletteColors.roseSoft.opacity(0.62) : Color.clear, in: RoundedRectangle(cornerRadius: 15, style: .continuous))
+                    HStack(spacing: 10) {
+                        sidebarIcon(group.icon, isSelected: isSelected)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(group.title)
+                                .font(.custom("PingFang SC", size: 13).weight(.medium))
+                                .foregroundStyle(isSelected ? PaletteColors.ink : PaletteColors.body)
+                                .lineLimit(1)
+                            Text(group.subtitle)
+                                .font(.custom("PingFang SC", size: 10.5).weight(.regular))
+                                .foregroundStyle(isSelected ? PaletteColors.muted : PaletteColors.faint)
+                                .lineLimit(1)
                         }
-                            .buttonStyle(.plain)
-                            .id(group.id)
-                        }
+                        Spacer(minLength: 0)
                     }
-                }
-                .onAppear {
-                    proxy.scrollTo(selectedScene, anchor: .top)
-                }
-                .transaction { transaction in
-                    transaction.animation = nil
+                    .padding(.horizontal, 10)
+                    .frame(maxWidth: .infinity, minHeight: 48, maxHeight: 48, alignment: .leading)
+                    .background(isSelected ? PaletteColors.roseSoft.opacity(0.62) : Color.clear, in: RoundedRectangle(cornerRadius: 15, style: .continuous))
+                    .contentShape(RoundedRectangle(cornerRadius: 15, style: .continuous))
+                    .onTapGesture {
+                        selectedScene = group.id
+                    }
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityAddTraits(.isButton)
+                    .accessibilityLabel("\(group.title)，\(group.subtitle)")
                 }
             }
 
