@@ -196,6 +196,15 @@ final class PromptStore {
         ),
         Skill(
             category: "调风格",
+            stage: "打磨中",
+            icon: "🧹",
+            title: "去 AI 味整体改稿",
+            command: "$unslop",
+            detail: "模板感、紫渐变、发光、假徽章",
+            prompt: "请使用 $unslop，把当前界面从 AI 生成感改成有自己性格的设计。请先从产品本身找设计方向，再按间距、颜色、图标、文案、字体、布局、细节、视觉和动效的顺序逐项修正；有图片工具时可以生成真实的主视觉。不要只做表面美化。"
+        ),
+        Skill(
+            category: "调风格",
             stage: "开始前",
             icon: "🖼️",
             title: "参考图风格提炼",
@@ -373,6 +382,138 @@ final class PromptStore {
             command: "$i-recap",
             detail: "把项目过程写成分享内容",
             prompt: "请使用 $i-recap，帮我把这个项目过程整理成一篇适合发社交媒体的设计/AI 协作分享。请保留真实转折和学习，不要写成营销稿；结构包含：我想解决什么、过程中踩到什么坑、关键转折、最后沉淀的方法、对其他设计师有什么启发。"
+        ),
+// —— 想清楚 ——
+        Skill(
+            category: "想清楚",
+            stage: "开始前",
+            icon: "🌙",
+            title: "离线时自动推进",
+            command: "$afk",
+            detail: "我不在时找改进、做分支、留报告",
+            prompt: "请使用 $afk，在我不在的这段时间里推进当前项目。请先收集证据、广泛找改进和新想法，只把最值得的几件做出来，放在本地分支上，不要合并；最后留一份两分钟能看完的报告给我。"
+        ),
+        Skill(
+            category: "想清楚",
+            stage: "开始前",
+            icon: "🏗️",
+            title: "照设计稿做界面",
+            command: "$build-design",
+            detail: "按 Figma 或设计图实现并对照",
+            prompt: "请使用 $build-design，按我给的 Figma 文件或设计图实现这个界面。请先读设计源头，用项目现有的 Token 和组件来做，做完把结果和设计图逐项对照再说完成。设计里没画的变化不要自己加；设计和规范冲突时按设计做，但要把冲突报给我。"
+        ),
+// —— 找问题 ——
+        Skill(
+            category: "找问题",
+            stage: "评审时",
+            icon: "🧐",
+            title: "界面综合评审",
+            command: "$better-interface",
+            detail: "无障碍、布局、文案、字体、颜色一次看完",
+            prompt: "请使用 $better-interface，对当前页面或流程做一次跨项综合评审，覆盖无障碍、布局、文案、字体、颜色和视觉打磨，最后给我一份按优先级排好的单一报告。先评审，不要直接改代码。"
+        ),
+        Skill(
+            category: "找问题",
+            stage: "评审时",
+            icon: "👀",
+            title: "改动代码评审",
+            command: "$interface-review",
+            detail: "查分支和未提交改动新引入的界面问题",
+            prompt: "请使用 $interface-review，评审当前分支、PR 或未提交改动给界面带来的问题，覆盖无障碍、布局、文案、字体、颜色和视觉打磨。只盯这次改动引入或弄坏的问题，历史问题不要混进来。"
+        ),
+        Skill(
+            category: "找问题",
+            stage: "上线前",
+            icon: "🔨",
+            title: "组件压力测试",
+            command: "$break",
+            detail: "把组件放进所有极端场景看它坏在哪",
+            prompt: "请使用 $break，把我指定的组件放到一个临时页面上，用所有真实可能出现的场景渲染一遍做压力测试。页面本身就是交付物：所有场景并排展示，坏掉的地方明确标出来；只观察和标记，不要顺手改组件。"
+        ),
+        Skill(
+            category: "找问题",
+            stage: "开始前",
+            icon: "🔬",
+            title: "拆解网站效果做法",
+            command: "$explain-interface",
+            detail: "给网址或截图，讲清效果怎么做的",
+            prompt: "请使用 $explain-interface，帮我拆解这个网站、视觉效果或动效是怎么做出来的。我会给你网址或截图，请讲清结构、关键技术和实现思路，让我能判断哪些值得借鉴到自己的项目里。"
+        ),
+// —— 调排版 ——
+        Skill(
+            category: "调排版",
+            stage: "打磨中",
+            icon: "📏",
+            title: "布局分组与对齐",
+            command: "$better-layout",
+            detail: "分组、对齐、阅读顺序、响应式、译文空间",
+            prompt: "请使用 $better-layout，优化当前界面的分组、对齐、间距和阅读顺序，并检查响应式结构以及译文变长、RTL 镜像时是否还成立。请用项目现有的间距系统写修复；先指出哪里真的出了问题（挤压、重叠、分组误读），再动手改。"
+        ),
+        Skill(
+            category: "调排版",
+            stage: "打磨中",
+            icon: "✒️",
+            title: "字体排印细节",
+            command: "$better-typography",
+            detail: "字阶、行距、字体特性、折行、标点",
+            prompt: "请使用 $better-typography，检查并优化当前界面的文字排印：字阶和间距、字体加载、OpenType 特性、折行、截断和标点。请用项目现有的样式系统落实，数值以实测为准，不要只凭偏好调整。"
+        ),
+        Skill(
+            category: "调排版",
+            stage: "打磨中",
+            icon: "✏️",
+            title: "界面文案改写",
+            command: "$better-writing",
+            detail: "标签、报错、空状态、确认文案",
+            prompt: "请使用 $better-writing，检查并改写当前界面的文案：标签、报错、空状态和确认提示要跟产品现有的语气一致，并让用户知道下一步做什么。只有造成不一致、歧义或翻译风险的才算问题，不要按个人口味硬改。"
+        ),
+// —— 调风格 ——
+        Skill(
+            category: "调风格",
+            stage: "打磨中",
+            icon: "🎨",
+            title: "色彩系统与对比度",
+            command: "$better-colors",
+            detail: "色板、语义 Token、格式转换、对比度测量",
+            prompt: "请使用 $better-colors，帮我建立或检查当前界面的色彩系统。请生成成套色板、映射到语义 Token 并起好名字，需要时做格式转换；对比度必须实际测量，不要估算。先列出量出来的问题，再动手改。"
+        ),
+        Skill(
+            category: "调风格",
+            stage: "打磨中",
+            icon: "🎛️",
+            title: "界面质感精修",
+            command: "$better-ui",
+            detail: "圆角、阴影、图标状态、动效数值",
+            prompt: "请使用 $better-ui，精修当前界面的表面、图标和动效质感：圆角、光学对齐、阴影、图标状态和动画曲线请按它给出的精确数值来，不要近似。交互本身有问题时先修交互，不要用打磨盖过去。"
+        ),
+        Skill(
+            category: "调风格",
+            stage: "打磨中",
+            icon: "🧪",
+            title: "组件多方案变体",
+            command: "$variant",
+            detail: "同一个组件做几个版本挑一个",
+            prompt: "请使用 $variant，帮我把正在做的这个组件做几个不同版本出来并排比较，陪我一版版迭代，最后挑定一个。变体之间要有真实区别，不要只改颜色糊弄。"
+        ),
+// —— 调交互 ——
+        Skill(
+            category: "调交互",
+            stage: "开发中",
+            icon: "🔀",
+            title: "组件全状态对照",
+            command: "$state-machine",
+            detail: "一个组件的所有状态同页对照",
+            prompt: "请使用 $state-machine，把我指定的组件的所有状态渲染到一个临时页面上，使用模拟数据并加一个状态切换器，让我能逐个状态慢慢调。这个页面是给我工作的工具，不要合并进正式代码。"
+        ),
+// —— 适配上线 ——
+        Skill(
+            category: "适配上线",
+            stage: "上线前",
+            icon: "♿",
+            title: "无障碍检查修复",
+            command: "$better-accessibility",
+            detail: "键盘、焦点、ARIA、读屏、WCAG 2.2",
+            prompt: "请使用 $better-accessibility，按 WCAG 2.2 检查并修复当前界面的无障碍问题。请重点走两遍：只用键盘能不能走完所有流程；用读屏时每个控件有没有名字、角色和状态。每个问题请标出违反了哪条标准，并用项目现有的样式系统写修复。"
         )
     ]
 }

@@ -1,5 +1,21 @@
 # 灵感指令台版本记录
 
+## v1.0.16｜2026-11-14
+
+新 skill 接入版。产品可见版本仍显示 `v1.0`，构建版本更新为 `116`。
+
+### 新增
+
+- 指令台接入两个 GitHub 上的 skill 来源，共 15 个新 skill，面板新增 15 条对应卡片：
+  - heydamir/unslop：`$unslop`（去 AI 味整体改稿，归「调风格」）。
+  - jakubkrehel/skills：`$better-interface`、`$interface-review`、`$break`、`$explain-interface`（找问题）；`$better-layout`、`$better-typography`、`$better-writing`（调排版）；`$better-colors`、`$better-ui`、`$variant`（调风格）；`$state-machine`（调交互）；`$better-accessibility`（适配上线）；`$afk`、`$build-design`（想清楚）。
+- 上述 skill 已原样镜像进仓库 `skills/` 目录，目录名与各自 SKILL.md 的 `name` 一致。
+
+### 说明
+
+- `install.command` 目前只安装 `skills/i-*` 目录，新 skill 装不进去。需同步把脚本里的遍历改为「`skills/` 下所有含 SKILL.md 的子目录」，否则面板有卡片、Codex 却没有对应能力。
+- 其中 `$afk`、`$break`、`$explain-interface`、`$interface-review`、`$state-machine`、`$variant` 的 SKILL.md 带 `disable-model-invocation: true`，只在被明确点名调用时触发；指令台的 prompt 都是显式「请使用 $…」开头，正好适配。
+
 ## v1.0.15｜2026-04-29
 
 流程识别优化版。产品可见版本仍显示 `v1.0`，构建版本更新为 `115`。

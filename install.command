@@ -48,8 +48,9 @@ if [[ -d "$ROOT_DIR/skills" ]]; then
   mkdir -p "$CODEX_SKILLS_DIR"
   mkdir -p "$BACKUP_DIR"
 
-  for skill_dir in "$ROOT_DIR"/skills/i-*; do
+  for skill_dir in "$ROOT_DIR"/skills/*; do
     [[ -d "$skill_dir" ]] || continue
+    [[ -f "$skill_dir/SKILL.md" ]] || continue
     skill_name="${skill_dir:t}"
     target_dir="$CODEX_SKILLS_DIR/$skill_name"
 
