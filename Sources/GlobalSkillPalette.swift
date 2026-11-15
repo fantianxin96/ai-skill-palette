@@ -3,6 +3,8 @@ import Carbon
 import SwiftUI
 
 struct Skill {
+    let id: String
+    let isNew: Bool
     let category: String
     let stage: String
     let icon: String
@@ -10,510 +12,661 @@ struct Skill {
     let command: String
     let detail: String
     let prompt: String
+
+    init(id: String, category: String, stage: String, icon: String, title: String,
+         command: String, detail: String, prompt: String, isNew: Bool = true) {
+        self.id = id
+        self.isNew = isNew
+        self.category = category
+        self.stage = stage
+        self.icon = icon
+        self.title = title
+        self.command = command
+        self.detail = detail
+        self.prompt = prompt
+    }
 }
+
+// NEWS_STATE_BEGIN
+struct CardNewsState {
+    static let storageKey = "palette.copiedCardIDs.v1"
+    let defaults: UserDefaults
+
+    init(defaults: UserDefaults = .standard) {
+        self.defaults = defaults
+    }
+
+    var copiedIDs: Set<String> {
+        Set(defaults.stringArray(forKey: Self.storageKey) ?? [])
+    }
+
+    func showsNews(cardID: String, isNew: Bool) -> Bool {
+        isNew && !copiedIDs.contains(cardID)
+    }
+
+    @discardableResult
+    func recordCopy(cardID: String, succeeded: Bool) -> Bool {
+        guard succeeded else { return false }
+        var ids = copiedIDs
+        ids.insert(cardID)
+        defaults.set(ids.sorted(), forKey: Self.storageKey)
+        return true
+    }
+}
+// NEWS_STATE_END
 
 final class PromptStore {
     static let skills: [Skill] = [
         Skill(
+            id: "i-synthesize",
             category: "想清楚",
             stage: "开始前",
             icon: "🧶",
             title: "需求来源综合（找线索）",
             command: "$i-synthesize",
             detail: "反馈、访谈、竞品、机会点",
-            prompt: "请使用 $i-synthesize，帮我把这些用户反馈、想法、竞品观察或聊天记录综合成产品洞察。请先区分事实、假设和个人感受，再提炼高频主题、真实用户问题、情绪动机、机会点和下一步可以验证的设计方向。不要直接跳到方案。"
+            prompt: "请使用 $i-synthesize，帮我把这些用户反馈、想法、竞品观察或聊天记录综合成产品洞察。请先区分事实、假设和个人感受，再提炼高频主题、真实用户问题、情绪动机、机会点和下一步可以验证的设计方向。不要直接跳到方案。",
+            isNew: false
         ),
         Skill(
+            id: "i-shape",
             category: "想清楚",
             stage: "开始前",
             icon: "📄",
             title: "产品 Brief 定义（定方向）",
             command: "$i-shape",
             detail: "定位、用户、MVP、边界、成功标准",
-            prompt: "请使用 $i-shape，帮我为当前项目生成一份轻量产品 brief。先不要写代码，请先梳理：产品定位、目标用户、核心场景、用户痛点、核心任务、MVP 范围、不做什么、成功标准、关键约束，以及后续新开 AI 对话时可以直接贴上的项目说明。"
+            prompt: "请使用 $i-shape，帮我为当前项目生成一份轻量产品 brief。先不要写代码，请先梳理：产品定位、目标用户、核心场景、用户痛点、核心任务、MVP 范围、不做什么、成功标准、关键约束，以及后续新开 AI 对话时可以直接贴上的项目说明。",
+            isNew: false
         ),
         Skill(
+            id: "i-shape-2",
             category: "想清楚",
             stage: "开始前",
             icon: "🧭",
             title: "单功能需求梳理（理功能）",
             command: "$i-shape",
             detail: "单个功能的用户、场景、优先级",
-            prompt: "请使用 $i-shape，以产品经理视角帮我理清这个单个功能需求。先不要写代码，先帮我梳理：目标用户、核心场景、用户路径、必须保留的体验、可以砍掉的复杂度、优先级、验收标准，以及你认为更好的产品建议。最后给我一个清晰的功能 brief 和下一步执行建议。"
+            prompt: "请使用 $i-shape，以产品经理视角帮我理清这个单个功能需求。先不要写代码，先帮我梳理：目标用户、核心场景、用户路径、必须保留的体验、可以砍掉的复杂度、优先级、验收标准，以及你认为更好的产品建议。最后给我一个清晰的功能 brief 和下一步执行建议。",
+            isNew: false
         ),
         Skill(
+            id: "i-shape-3",
             category: "想清楚",
             stage: "开始前",
             icon: "🧱",
             title: "产品结构草图（拆模块）",
             command: "$i-shape",
             detail: "页面模块、输入输出、信息架构",
-            prompt: "请使用 $i-shape，基于刚刚的产品定义，继续做产品结构草图。先不要写代码，也不要做视觉设计。这一步只回答“产品由哪些页面/模块组成”，不要细化单条用户操作路径，也不要砍 MVP 范围。请梳理：1. 页面/模块清单；2. 每个页面/模块的职责；3. 每个页面/模块的输入、处理、输出；4. 页面/模块之间的数据和依赖关系；5. 哪些模块容易被混淆，需要命名或边界说明；6. 最后给我一版清晰的信息架构树和模块关系图。"
+            prompt: "请使用 $i-shape，基于刚刚的产品定义，继续做产品结构草图。先不要写代码，也不要做视觉设计。这一步只回答“产品由哪些页面/模块组成”，不要细化单条用户操作路径，也不要砍 MVP 范围。请梳理：1. 页面/模块清单；2. 每个页面/模块的职责；3. 每个页面/模块的输入、处理、输出；4. 页面/模块之间的数据和依赖关系；5. 哪些模块容易被混淆，需要命名或边界说明；6. 最后给我一版清晰的信息架构树和模块关系图。",
+            isNew: false
         ),
         Skill(
+            id: "i-shape-4",
             category: "想清楚",
             stage: "开始前",
             icon: "🎯",
             title: "MVP 范围切分（切 v1）",
             command: "$i-shape",
             detail: "先做什么、砍掉什么、后做什么",
-            prompt: "请使用 $i-shape，基于已经列出的产品结构、功能清单或页面模块，帮我做 MVP 范围切分。先不要重新规划页面结构，也不要写代码。如果信息不足，请先问我最多 3 个关键问题；如果信息足够，请直接输出：1. v1 必须保留的核心闭环；2. 可以合并的页面/模块；3. 可以先用手动、半自动或低保真方式代替的能力；4. 明确后置到 v1.1/v2 的功能；5. 第一版最小可验证路径；6. 第一版验收标准；7. 为了不把产品做散必须坚持的体验原则。"
+            prompt: "请使用 $i-shape，基于已经列出的产品结构、功能清单或页面模块，帮我做 MVP 范围切分。先不要重新规划页面结构，也不要写代码。如果信息不足，请先问我最多 3 个关键问题；如果信息足够，请直接输出：1. v1 必须保留的核心闭环；2. 可以合并的页面/模块；3. 可以先用手动、半自动或低保真方式代替的能力；4. 明确后置到 v1.1/v2 的功能；5. 第一版最小可验证路径；6. 第一版验收标准；7. 为了不把产品做散必须坚持的体验原则。",
+            isNew: false
         ),
         Skill(
+            id: "i-shape-5",
             category: "想清楚",
             stage: "开始前",
             icon: "🗺️",
             title: "页面路径规划（走流程）",
             command: "$i-shape",
             detail: "单条任务流、状态、反馈、异常路径",
-            prompt: "【本次规划目标：把这里替换成当前任务流，例如“首次使用成功路径 / 导入到导出 / 注册完成支付”】\n\n请使用 $i-shape，基于已确定的产品结构，帮我规划这条核心任务流的页面路径。先不要写代码，也不要重新设计产品模块。请先确认或复述本次要规划的用户目标；如果目标不明确，请先问我最多 3 个关键问题。然后聚焦这一个用户目标，梳理用户从进入、理解、操作、反馈到完成的具体步骤。请列出：1. 每一步出现的页面、弹窗或局部状态；2. 用户在每一步要完成的动作；3. 系统在每一步要给出的反馈；4. 空/loading/成功/失败状态；5. 异常路径和恢复方式；6. 容易漏掉的边界情况；7. 容易让用户困惑的节点和引导建议。最后给我一版可用于原型的任务流转。"
+            prompt: "【本次规划目标：把这里替换成当前任务流，例如“首次使用成功路径 / 导入到导出 / 注册完成支付”】\n\n请使用 $i-shape，基于已确定的产品结构，帮我规划这条核心任务流的页面路径。先不要写代码，也不要重新设计产品模块。请先确认或复述本次要规划的用户目标；如果目标不明确，请先问我最多 3 个关键问题。然后聚焦这一个用户目标，梳理用户从进入、理解、操作、反馈到完成的具体步骤。请列出：1. 每一步出现的页面、弹窗或局部状态；2. 用户在每一步要完成的动作；3. 系统在每一步要给出的反馈；4. 空/loading/成功/失败状态；5. 异常路径和恢复方式；6. 容易漏掉的边界情况；7. 容易让用户困惑的节点和引导建议。最后给我一版可用于原型的任务流转。",
+            isNew: false
         ),
         Skill(
+            id: "flow",
             category: "想清楚",
             stage: "开始前",
             icon: "🧩",
             title: "从需求到上线路线（看全局）",
             command: "flow",
             detail: "需求、页面、设计、实现、验收",
-            prompt: "请按 UX / 产品设计师的 AI 工作流帮我推进这个功能：1. 先用 $i-shape 梳理需求和用户路径；2. 再列页面清单和 MVP 范围；3. 如果已有满意页面，使用 $i-system 定设计基准；4. 实现前给出任务拆分；5. 上线前使用 $i-audit / $i-handoff 做验收。先给路线图和下一步，不要直接写代码。"
+            prompt: "请按 UX / 产品设计师的 AI 工作流帮我推进这个功能：1. 先用 $i-shape 梳理需求和用户路径；2. 再列页面清单和 MVP 范围；3. 如果已有满意页面，使用 $i-system 定设计基准；4. 实现前给出任务拆分；5. 上线前使用 $i-audit / $i-handoff 做验收。先给路线图和下一步，不要直接写代码。",
+            isNew: false
         ),
         Skill(
+            id: "i-critique",
             category: "评审",
             stage: "评审时",
             icon: "🔍",
             title: "UI/UX 设计评审（找问题）",
             command: "$i-critique",
             detail: "层级、信息、情绪、反 AI 味",
-            prompt: "请使用 $i-critique，对当前页面/功能做一次 UI/UX 设计评审。请从视觉层级、信息架构、当前目标设备体验、交互反馈、情绪感受、反 AI 味、可用性问题来评估。先给评分和优先级问题，不要直接改代码。"
+            prompt: "请使用 $i-critique，对当前页面/功能做一次 UI/UX 设计评审。请从视觉层级、信息架构、当前目标设备体验、交互反馈、情绪感受、反 AI 味、可用性问题来评估。先给评分和优先级问题，不要直接改代码。",
+            isNew: false
         ),
         Skill(
+            id: "i-web-interact",
             category: "评审",
             stage: "评审时",
             icon: "🖱️",
             title: "Web 交互状态检查",
             command: "$i-web-interact",
             detail: "hover、focus、键盘、浏览器状态",
-            prompt: "请使用 $i-web-interact，对当前 Web 页面/产品做一次交互状态检查。请重点检查 hover、active/pressed、focus、disabled、selected、dropdown/popover、modal/toast、loading/success/error/retry、键盘操作、cursor 提示和响应式状态。先给交互完整度评分和优先级问题，不要直接加动效。"
+            prompt: "请使用 $i-web-interact，对当前 Web 页面/产品做一次交互状态检查。请重点检查 hover、active/pressed、focus、disabled、selected、dropdown/popover、modal/toast、loading/success/error/retry、键盘操作、cursor 提示和响应式状态。先给交互完整度评分和优先级问题，不要直接加动效。",
+            isNew: false
         ),
         Skill(
+            id: "i-app-interact",
             category: "评审",
             stage: "评审时",
             icon: "📲",
             title: "App 触控手感检查",
             command: "$i-app-interact",
             detail: "tap、手势、底部弹层、安全区",
-            prompt: "请使用 $i-app-interact，对当前移动端 App 页面/流程做一次触控手感检查。请重点检查 tap/pressed、selected、disabled、loading/success/error/retry、滑动/拖拽/长按、底部弹层、导航转场、键盘弹起、安全区、触控热区、系统手势冲突和反馈闭环。先给交互完整度评分和优先级问题，不要直接加动效。"
+            prompt: "请使用 $i-app-interact，对当前移动端 App 页面/流程做一次触控手感检查。请重点检查 tap/pressed、selected、disabled、loading/success/error/retry、滑动/拖拽/长按、底部弹层、导航转场、键盘弹起、安全区、触控热区、系统手势冲突和反馈闭环。先给交互完整度评分和优先级问题，不要直接加动效。",
+            isNew: false
         ),
         Skill(
+            id: "i-system",
             category: "系统",
             stage: "定系统",
             icon: "📌",
             title: "从满意页提炼规范",
             command: "$i-system",
             detail: "提取字体、颜色、间距、组件",
-            prompt: "请使用 $i-system，从当前我已经满意的页面/组件里提取设计系统。请沉淀颜色、字体层级、间距、圆角、阴影、卡片、按钮、弹窗、动效状态、移动端规则和文案语气，写成项目里的 DESIGN.md。目标是让后续第二页、第三页都能延续同一套视觉语言。"
+            prompt: "请使用 $i-system，从当前我已经满意的页面/组件里提取设计系统。请沉淀颜色、字体层级、间距、圆角、阴影、卡片、按钮、弹窗、动效状态、移动端规则和文案语气，写成项目里的 DESIGN.md。目标是让后续第二页、第三页都能延续同一套视觉语言。",
+            isNew: false
         ),
         Skill(
+            id: "i-system-2",
             category: "系统",
             stage: "定系统",
             icon: "🧭",
             title: "新页面基准确认",
             command: "$i-system",
             detail: "开新页前定规则和边界",
-            prompt: "请使用 $i-system，在开始新页面之前，基于项目里的 DESIGN.md 或已满意的参考页面，帮我确认这次新页面应该沿用哪些设计规则。请明确：必须保持一致的字体、颜色、间距、按钮、卡片、弹窗和文案语气；可以根据页面功能变化的部分；以及本页不能破坏的设计边界。先给基准清单，不要直接写代码。"
+            prompt: "请使用 $i-system，在开始新页面之前，基于项目里的 DESIGN.md 或已满意的参考页面，帮我确认这次新页面应该沿用哪些设计规则。请明确：必须保持一致的字体、颜色、间距、按钮、卡片、弹窗和文案语气；可以根据页面功能变化的部分；以及本页不能破坏的设计边界。先给基准清单，不要直接写代码。",
+            isNew: false
         ),
         Skill(
+            id: "i-consistency",
             category: "系统",
             stage: "定系统",
             icon: "🧷",
             title: "风格漂移校准",
             command: "$i-consistency",
             detail: "字体、颜色、间距、组件、状态",
-            prompt: "请使用 $i-consistency，基于项目中的 DESIGN.md 或我已经满意的第一页，检查当前页面是否与参考页面保持一致。重点看字体层级、颜色、间距、卡片、按钮、弹窗、hover/active/loading 状态、移动端表现和文案语气。先给一致性评分和优先级问题；如果需要修改，请只做对齐，不要重新设计。"
+            prompt: "请使用 $i-consistency，基于项目中的 DESIGN.md 或我已经满意的第一页，检查当前页面是否与参考页面保持一致。重点看字体层级、颜色、间距、卡片、按钮、弹窗、hover/active/loading 状态、移动端表现和文案语气。先给一致性评分和优先级问题；如果需要修改，请只做对齐，不要重新设计。",
+            isNew: false
         ),
         Skill(
+            id: "i-system-3",
             category: "系统",
             stage: "定系统",
             icon: "🗂️",
             title: "阶段复盘升级系统",
             command: "$i-system",
             detail: "更新 DESIGN.md 和组件规则",
-            prompt: "请使用 $i-system，对当前项目做一次阶段性设计系统复盘。请检查实际页面里已经稳定复用的颜色、字体、间距、组件、状态、移动端规则和文案语气，并更新 DESIGN.md：保留有效规则，删掉没有继续使用的规则，补充新出现的组件状态和边界情况。先列出建议改动，再更新文档。"
+            prompt: "请使用 $i-system，对当前项目做一次阶段性设计系统复盘。请检查实际页面里已经稳定复用的颜色、字体、间距、组件、状态、移动端规则和文案语气，并更新 DESIGN.md：保留有效规则，删掉没有继续使用的规则，补充新出现的组件状态和边界情况。先列出建议改动，再更新文档。",
+            isNew: false
         ),
         Skill(
+            id: "i-typeset",
             category: "设计",
             stage: "打磨中",
             icon: "🔤",
             title: "字体层级打磨",
             command: "$i-typeset",
             detail: "字体、字号、字重、行高",
-            prompt: "请使用 $i-typeset，重点优化当前界面的字体、字号、字重、行高和文本层级。请先指出哪里显得不精致，再动手修改。中文优先考虑 PingFang SC 的自然层级，不要使用生硬的粗体堆叠。"
+            prompt: "请使用 $i-typeset，重点优化当前界面的字体、字号、字重、行高和文本层级。请先指出哪里显得不精致，再动手修改。中文优先考虑 PingFang SC 的自然层级，不要使用生硬的粗体堆叠。",
+            isNew: false
         ),
         Skill(
+            id: "i-layout",
             category: "设计",
             stage: "打磨中",
             icon: "📐",
             title: "布局节奏优化",
             command: "$i-layout",
             detail: "间距、对齐、呼吸感、一屏呈现",
-            prompt: "请使用 $i-layout，优化当前界面的布局、间距、对齐、视觉节奏和移动端一屏呈现。请重点检查是否拥挤、是否太平均、按钮和内容之间是否有呼吸感。"
+            prompt: "请使用 $i-layout，优化当前界面的布局、间距、对齐、视觉节奏和移动端一屏呈现。请重点检查是否拥挤、是否太平均、按钮和内容之间是否有呼吸感。",
+            isNew: false
         ),
         Skill(
+            id: "i-polish",
             category: "设计",
             stage: "上线前",
             icon: "✨",
             title: "最终质感收尾",
             command: "$i-polish",
             detail: "对齐、状态、对比度、移动端细节",
-            prompt: "请使用 $i-polish，做最终质感收尾。重点检查对齐、间距、对比度、hover/active/loading/empty 状态、移动端细节、文本是否溢出、动效是否自然。请小步改，不要大改结构。"
+            prompt: "请使用 $i-polish，做最终质感收尾。重点检查对齐、间距、对比度、hover/active/loading/empty 状态、移动端细节、文本是否溢出、动效是否自然。请小步改，不要大改结构。",
+            isNew: false
         ),
         Skill(
+            id: "i-clarify",
             category: "表达",
             stage: "打磨中",
             icon: "💬",
             title: "文案表达优化",
             command: "$i-clarify",
             detail: "按钮、提示、说明、错误信息",
-            prompt: "请使用 $i-clarify，优化当前界面的文案、按钮文字、提示语和错误/分享提示。目标是更自然、更容易懂、更有人味，不要像说明书。先给修改建议，再执行。"
+            prompt: "请使用 $i-clarify，优化当前界面的文案、按钮文字、提示语和错误/分享提示。目标是更自然、更容易懂、更有人味，不要像说明书。先给修改建议，再执行。",
+            isNew: false
         ),
         Skill(
+            id: "i-colorize",
             category: "设计",
             stage: "打磨中",
             icon: "🎨",
             title: "色彩氛围优化",
             command: "$i-colorize",
             detail: "柔和、克制、有层次",
-            prompt: "请使用 $i-colorize，优化当前界面的色彩系统。目标是更有氛围但不花哨，颜色要柔和、克制、有层次。请检查首页、按钮、卡片、弹窗、弱文本对比度。"
+            prompt: "请使用 $i-colorize，优化当前界面的色彩系统。目标是更有氛围但不花哨，颜色要柔和、克制、有层次。请检查首页、按钮、卡片、弹窗、弱文本对比度。",
+            isNew: false
         ),
         Skill(
+            id: "i-critique-2",
             category: "调风格",
             stage: "评审时",
             icon: "🪞",
             title: "反 AI 味审美诊断",
             command: "$i-critique",
             detail: "模板感、廉价感、泛化设计",
-            prompt: "请使用 $i-critique，专门从“反 AI 味”和审美可信度角度评审当前界面。请指出哪些地方显得模板化、泛化、廉价、过度平均或像默认 AI 产物；再给出优先级最高的 3-5 个改法。先不要直接改代码。"
+            prompt: "请使用 $i-critique，专门从“反 AI 味”和审美可信度角度评审当前界面。请指出哪些地方显得模板化、泛化、廉价、过度平均或像默认 AI 产物；再给出优先级最高的 3-5 个改法。先不要直接改代码。",
+            isNew: false
         ),
         Skill(
+            id: "unslop",
             category: "调风格",
             stage: "打磨中",
             icon: "🧹",
             title: "去 AI 味整体改稿",
             command: "$unslop",
             detail: "模板感、紫渐变、发光、假徽章",
-            prompt: "请使用 $unslop，把当前界面从 AI 生成感改成有自己性格的设计。请先从产品本身找设计方向，再按间距、颜色、图标、文案、字体、布局、细节、视觉和动效的顺序逐项修正；有图片工具时可以生成真实的主视觉。不要只做表面美化。"
+            prompt: "请使用 $unslop，把当前界面从 AI 生成感改成有自己性格的设计。请先从产品本身找设计方向，再按间距、颜色、图标、文案、字体、布局、细节、视觉和动效的顺序逐项修正；有图片工具时可以生成真实的主视觉。不要只做表面美化。",
+            isNew: true
         ),
         Skill(
+            id: "i-impeccable",
             category: "调风格",
             stage: "开始前",
             icon: "🖼️",
             title: "参考图风格提炼",
             command: "$i-impeccable",
             detail: "从灵感图提取可用设计语言",
-            prompt: "请使用 $i-impeccable extract，基于我给的参考图或视觉灵感，提炼它的设计语言。请总结：色彩氛围、字体气质、留白节奏、组件形状、插画/图标语法、情绪关键词，以及哪些适合迁移到当前产品、哪些不适合照搬。先输出风格提炼，不要直接改代码。"
+            prompt: "请使用 $i-impeccable extract，基于我给的参考图或视觉灵感，提炼它的设计语言。请总结：色彩氛围、字体气质、留白节奏、组件形状、插画/图标语法、情绪关键词，以及哪些适合迁移到当前产品、哪些不适合照搬。先输出风格提炼，不要直接改代码。",
+            isNew: false
         ),
         Skill(
+            id: "i-bolder",
             category: "调风格",
             stage: "打磨中",
             icon: "💎",
             title: "普通页面变高级",
             command: "$i-bolder",
             detail: "保留可用性，提升气质记忆点",
-            prompt: "请使用 $i-bolder，把当前页面从“能用但普通”提升到更有审美记忆点。请重点优化视觉层级、节奏、主视觉、空白、组件质感和关键动作存在感；不要堆渐变、装饰和大而空的 hero。先指出普通感来自哪里，再小步修改。"
+            prompt: "请使用 $i-bolder，把当前页面从“能用但普通”提升到更有审美记忆点。请重点优化视觉层级、节奏、主视觉、空白、组件质感和关键动作存在感；不要堆渐变、装饰和大而空的 hero。先指出普通感来自哪里，再小步修改。",
+            isNew: false
         ),
         Skill(
+            id: "i-animate",
             category: "交互",
             stage: "开发中",
             icon: "〰️",
             title: "动效微交互",
             command: "$i-animate",
             detail: "点击、loading、结果出现、弹窗",
-            prompt: "请使用 $i-animate，为当前功能增加或优化动效和微交互。重点是点击反馈、loading、结果出现、弹窗开合、按钮状态。动效要自然、有目的，不要炫技。"
+            prompt: "请使用 $i-animate，为当前功能增加或优化动效和微交互。重点是点击反馈、loading、结果出现、弹窗开合、按钮状态。动效要自然、有目的，不要炫技。",
+            isNew: false
         ),
         Skill(
+            id: "i-delight",
             category: "交互",
             stage: "打磨中",
             icon: "🌟",
             title: "愉悦感细节",
             command: "$i-delight",
             detail: "情绪峰值、记忆点、小惊喜",
-            prompt: "请使用 $i-delight，给当前体验增加一点记忆点和愉悦感。请围绕用户完成核心动作时的情绪峰值设计，不要堆装饰。"
+            prompt: "请使用 $i-delight，给当前体验增加一点记忆点和愉悦感。请围绕用户完成核心动作时的情绪峰值设计，不要堆装饰。",
+            isNew: false
         ),
         Skill(
+            id: "i-distill",
             category: "收敛",
             stage: "收尾时",
             icon: "✂️",
             title: "简化去噪",
             command: "$i-distill",
             detail: "删掉不必要的元素和流程",
-            prompt: "请使用 $i-distill，帮我简化当前功能和界面。请指出哪些元素、文案、交互或视觉装饰可以删掉，让核心体验更清楚。先给清单，再小步执行。"
+            prompt: "请使用 $i-distill，帮我简化当前功能和界面。请指出哪些元素、文案、交互或视觉装饰可以删掉，让核心体验更清楚。先给清单，再小步执行。",
+            isNew: false
         ),
         Skill(
+            id: "i-adapt",
             category: "适配",
             stage: "开发中",
             icon: "📱",
             title: "移动端适配",
             command: "$i-adapt",
             detail: "手机高度、微信浏览器、安全区",
-            prompt: "请使用 $i-adapt，检查并优化移动端适配。重点看不同手机高度、微信内置浏览器、安全区、按钮触控区域、一屏呈现、文本是否挤压或重叠。"
+            prompt: "请使用 $i-adapt，检查并优化移动端适配。重点看不同手机高度、微信内置浏览器、安全区、按钮触控区域、一屏呈现、文本是否挤压或重叠。",
+            isNew: false
         ),
         Skill(
+            id: "i-optimize",
             category: "工程",
             stage: "上线前",
             icon: "⚡️",
             title: "性能顺滑度",
             command: "$i-optimize",
             detail: "动画、重绘、资源、卡顿",
-            prompt: "请使用 $i-optimize，检查当前页面的性能和顺滑度。重点看动画是否 60fps、是否有不必要重绘、移动端是否卡顿、资源是否过重。"
+            prompt: "请使用 $i-optimize，检查当前页面的性能和顺滑度。重点看动画是否 60fps、是否有不必要重绘、移动端是否卡顿、资源是否过重。",
+            isNew: false
         ),
         Skill(
+            id: "i-audit",
             category: "工程",
             stage: "上线前",
             icon: "✅",
             title: "可访问性/技术审计",
             command: "$i-audit",
             detail: "对比度、键盘、ARIA、控制台错误",
-            prompt: "请使用 $i-audit，做一次技术质量审计。重点检查可访问性、对比度、键盘操作、ARIA、移动端兼容、性能、控制台错误。给出 P0-P3 问题和修复建议。"
+            prompt: "请使用 $i-audit，做一次技术质量审计。重点检查可访问性、对比度、键盘操作、ARIA、移动端兼容、性能、控制台错误。给出 P0-P3 问题和修复建议。",
+            isNew: false
         ),
         Skill(
+            id: "i-harden",
             category: "工程",
             stage: "上线前",
             icon: "🛡️",
             title: "真实场景加固",
             command: "$i-harden",
             detail: "空状态、错误、长文本、边界情况",
-            prompt: "请使用 $i-harden，把当前界面加固到更接近真实可用。重点检查空状态、错误状态、长文本溢出、极端内容、加载失败、国际化长度、移动端边界情况。先列出风险，再小步修复。"
+            prompt: "请使用 $i-harden，把当前界面加固到更接近真实可用。重点检查空状态、错误状态、长文本溢出、极端内容、加载失败、国际化长度、移动端边界情况。先列出风险，再小步修复。",
+            isNew: false
         ),
         Skill(
+            id: "i-handoff",
             category: "适配上线",
             stage: "交付前",
             icon: "📦",
             title: "开发交付 Brief",
             command: "$i-handoff",
             detail: "组件、状态、边界、设计意图",
-            prompt: "请使用 $i-handoff，把当前页面/功能整理成开发或 AI 继续实现可用的交付 brief。请包含：功能目标、用户路径、页面结构、组件清单、状态清单、响应式要求、可访问性要求、不能改坏的设计意图，以及建议的实现顺序。"
+            prompt: "请使用 $i-handoff，把当前页面/功能整理成开发或 AI 继续实现可用的交付 brief。请包含：功能目标、用户路径、页面结构、组件清单、状态清单、响应式要求、可访问性要求、不能改坏的设计意图，以及建议的实现顺序。",
+            isNew: false
         ),
         Skill(
+            id: "i-handoff-2",
             category: "适配上线",
             stage: "上线前",
             icon: "🧾",
             title: "验收标准清单",
             command: "$i-handoff",
             detail: "可测试的上线检查项",
-            prompt: "请使用 $i-handoff，为当前功能整理一份上线前验收标准。请写成可勾选清单，覆盖视觉一致性、交互状态、移动端、安全区、空/错/loading 状态、文案、可访问性、性能和真实边界情况。每条标准都要能被实际验证。"
+            prompt: "请使用 $i-handoff，为当前功能整理一份上线前验收标准。请写成可勾选清单，覆盖视觉一致性、交互状态、移动端、安全区、空/错/loading 状态、文案、可访问性、性能和真实边界情况。每条标准都要能被实际验证。",
+            isNew: false
         ),
         Skill(
+            id: "i-bolder-2",
             category: "设计",
             stage: "打磨中",
             icon: "🚀",
             title: "视觉更大胆",
             command: "$i-bolder",
             detail: "太平、太安全、缺少记忆点",
-            prompt: "请使用 $i-bolder，让当前设计更有视觉冲击和记忆点。请保持可用性，不要变花哨；重点增强主视觉、层级、节奏和关键动作的存在感。先指出现在为什么显得平，再动手修改。"
+            prompt: "请使用 $i-bolder，让当前设计更有视觉冲击和记忆点。请保持可用性，不要变花哨；重点增强主视觉、层级、节奏和关键动作的存在感。先指出现在为什么显得平，再动手修改。",
+            isNew: false
         ),
         Skill(
+            id: "i-quieter",
             category: "设计",
             stage: "打磨中",
             icon: "🌙",
             title: "视觉降噪变安静",
             command: "$i-quieter",
             detail: "太吵、太满、太抢注意力",
-            prompt: "请使用 $i-quieter，把当前界面调得更安静、更克制、更高级。请降低过强的颜色、阴影、动效和装饰，但保留核心层级和可用性。先指出哪些地方太吵，再小步调整。"
+            prompt: "请使用 $i-quieter，把当前界面调得更安静、更克制、更高级。请降低过强的颜色、阴影、动效和装饰，但保留核心层级和可用性。先指出哪些地方太吵，再小步调整。",
+            isNew: false
         ),
         Skill(
+            id: "i-overdrive",
             category: "交互",
             stage: "打磨中",
             icon: "🪄",
             title: "惊艳实验模式",
             command: "$i-overdrive",
             detail: "高级动效、技术野心、wow moment",
-            prompt: "请使用 $i-overdrive，探索一个更惊艳的高完成度版本。可以考虑更强的动效、沉浸式交互、3D/Canvas/Shader 或更复杂的状态编排，但必须服务核心体验。先给方向和风险，再实现最值得的部分。"
+            prompt: "请使用 $i-overdrive，探索一个更惊艳的高完成度版本。可以考虑更强的动效、沉浸式交互、3D/Canvas/Shader 或更复杂的状态编排，但必须服务核心体验。先给方向和风险，再实现最值得的部分。",
+            isNew: false
         ),
         Skill(
+            id: "i-impeccable-2",
             category: "设计",
             stage: "开始前",
             icon: "🖌️",
             title: "从零做精致界面",
             command: "$i-impeccable",
             detail: "完整页面、组件、产品化界面",
-            prompt: "请使用 $i-impeccable craft，为这个功能做一个高质量、可运行、避免 AI 味的界面实现。先确认目标用户、使用场景和设计方向，再开始写代码。"
+            prompt: "请使用 $i-impeccable craft，为这个功能做一个高质量、可运行、避免 AI 味的界面实现。先确认目标用户、使用场景和设计方向，再开始写代码。",
+            isNew: false
         ),
         Skill(
+            id: "flow-2",
             category: "流程",
             stage: "开始前",
             icon: "🧩",
             title: "一条龙：先需求再评审再打磨",
             command: "flow",
             detail: "适合新功能开局",
-            prompt: "请按这个顺序帮我推进：1. 使用 $i-shape 先理清产品需求和用户路径；2. 使用 $i-critique 做 UI/UX 评审；3. 根据评审结果选择 $i-typeset / $i-layout / $i-polish 做修改。先不要一上来写代码，先告诉我你理解的目标和优先级。"
+            prompt: "请按这个顺序帮我推进：1. 使用 $i-shape 先理清产品需求和用户路径；2. 使用 $i-critique 做 UI/UX 评审；3. 根据评审结果选择 $i-typeset / $i-layout / $i-polish 做修改。先不要一上来写代码，先告诉我你理解的目标和优先级。",
+            isNew: false
         ),
         Skill(
+            id: "i-recap",
             category: "复盘沉淀",
             stage: "收尾时",
             icon: "🧠",
             title: "AI 协作复盘",
             command: "$i-recap",
             detail: "让新对话别重复踩坑",
-            prompt: "请使用 $i-recap，帮我做一次 AI 协作复盘。请总结这次过程中 AI 起初误解了什么、遇到过什么问题、后来怎么解决、哪些文件/命令/决策以后新开对话必须告诉 AI，以及下次开局可以直接贴给 AI 的上下文 brief。"
+            prompt: "请使用 $i-recap，帮我做一次 AI 协作复盘。请总结这次过程中 AI 起初误解了什么、遇到过什么问题、后来怎么解决、哪些文件/命令/决策以后新开对话必须告诉 AI，以及下次开局可以直接贴给 AI 的上下文 brief。",
+            isNew: false
         ),
         Skill(
+            id: "i-recap-2",
             category: "复盘沉淀",
             stage: "收尾时",
             icon: "✍️",
             title: "设计思路复盘",
             command: "$i-recap",
             detail: "记录判断、取舍和学到的东西",
-            prompt: "请使用 $i-recap，帮我做一次设计思路复盘。请按时间线整理：最初的问题、我为什么不满意、关键审美/产品判断是什么、哪些尝试被放弃、最终方案为什么更好、我从中学到了什么。语气可以像写给未来自己的设计笔记。"
+            prompt: "请使用 $i-recap，帮我做一次设计思路复盘。请按时间线整理：最初的问题、我为什么不满意、关键审美/产品判断是什么、哪些尝试被放弃、最终方案为什么更好、我从中学到了什么。语气可以像写给未来自己的设计笔记。",
+            isNew: false
         ),
         Skill(
+            id: "i-recap-3",
             category: "复盘沉淀",
             stage: "收尾时",
             icon: "📝",
             title: "下次开局上下文",
             command: "$i-recap",
             detail: "给新窗口的一段项目说明",
-            prompt: "请使用 $i-recap，帮我生成一份可以直接贴到新 AI 对话里的项目上下文。请包含：项目目标、当前版本、重要文件路径、设计方向、已经确定不能改坏的体验、已解决的问题、仍待处理的问题、下一步建议。要求短而完整。"
+            prompt: "请使用 $i-recap，帮我生成一份可以直接贴到新 AI 对话里的项目上下文。请包含：项目目标、当前版本、重要文件路径、设计方向、已经确定不能改坏的体验、已解决的问题、仍待处理的问题、下一步建议。要求短而完整。",
+            isNew: false
         ),
         Skill(
+            id: "i-recap-4",
             category: "复盘沉淀",
             stage: "收尾时",
             icon: "📣",
             title: "社交媒体整理",
             command: "$i-recap",
             detail: "把项目过程写成分享内容",
-            prompt: "请使用 $i-recap，帮我把这个项目过程整理成一篇适合发社交媒体的设计/AI 协作分享。请保留真实转折和学习，不要写成营销稿；结构包含：我想解决什么、过程中踩到什么坑、关键转折、最后沉淀的方法、对其他设计师有什么启发。"
+            prompt: "请使用 $i-recap，帮我把这个项目过程整理成一篇适合发社交媒体的设计/AI 协作分享。请保留真实转折和学习，不要写成营销稿；结构包含：我想解决什么、过程中踩到什么坑、关键转折、最后沉淀的方法、对其他设计师有什么启发。",
+            isNew: false
         ),
 // —— 想清楚 ——
         Skill(
+            id: "afk",
             category: "想清楚",
             stage: "开始前",
             icon: "🌙",
             title: "离线时自动推进",
             command: "$afk",
             detail: "我不在时找改进、做分支、留报告",
-            prompt: "请使用 $afk，在我不在的这段时间里推进当前项目。请先收集证据、广泛找改进和新想法，只把最值得的几件做出来，放在本地分支上，不要合并；最后留一份两分钟能看完的报告给我。"
+            prompt: "请使用 $afk，在我不在的这段时间里推进当前项目。请先收集证据、广泛找改进和新想法，只把最值得的几件做出来，放在本地分支上，不要合并；最后留一份两分钟能看完的报告给我。",
+            isNew: true
         ),
         Skill(
+            id: "build-design",
             category: "想清楚",
             stage: "开始前",
             icon: "🏗️",
             title: "照设计稿做界面",
             command: "$build-design",
             detail: "按 Figma 或设计图实现并对照",
-            prompt: "请使用 $build-design，按我给的 Figma 文件或设计图实现这个界面。请先读设计源头，用项目现有的 Token 和组件来做，做完把结果和设计图逐项对照再说完成。设计里没画的变化不要自己加；设计和规范冲突时按设计做，但要把冲突报给我。"
+            prompt: "请使用 $build-design，按我给的 Figma 文件或设计图实现这个界面。请先读设计源头，用项目现有的 Token 和组件来做，做完把结果和设计图逐项对照再说完成。设计里没画的变化不要自己加；设计和规范冲突时按设计做，但要把冲突报给我。",
+            isNew: true
         ),
 // —— 找问题 ——
         Skill(
+            id: "better-interface",
             category: "找问题",
             stage: "评审时",
             icon: "🧐",
             title: "界面综合评审",
             command: "$better-interface",
             detail: "无障碍、布局、文案、字体、颜色一次看完",
-            prompt: "请使用 $better-interface，对当前页面或流程做一次跨项综合评审，覆盖无障碍、布局、文案、字体、颜色和视觉打磨，最后给我一份按优先级排好的单一报告。先评审，不要直接改代码。"
+            prompt: "请使用 $better-interface，对当前页面或流程做一次跨项综合评审，覆盖无障碍、布局、文案、字体、颜色和视觉打磨，最后给我一份按优先级排好的单一报告。先评审，不要直接改代码。",
+            isNew: true
         ),
         Skill(
+            id: "interface-review",
             category: "找问题",
             stage: "评审时",
             icon: "👀",
             title: "改动代码评审",
             command: "$interface-review",
             detail: "查分支和未提交改动新引入的界面问题",
-            prompt: "请使用 $interface-review，评审当前分支、PR 或未提交改动给界面带来的问题，覆盖无障碍、布局、文案、字体、颜色和视觉打磨。只盯这次改动引入或弄坏的问题，历史问题不要混进来。"
+            prompt: "请使用 $interface-review，评审当前分支、PR 或未提交改动给界面带来的问题，覆盖无障碍、布局、文案、字体、颜色和视觉打磨。只盯这次改动引入或弄坏的问题，历史问题不要混进来。",
+            isNew: true
         ),
         Skill(
+            id: "break",
             category: "找问题",
             stage: "上线前",
             icon: "🔨",
             title: "组件压力测试",
             command: "$break",
             detail: "把组件放进所有极端场景看它坏在哪",
-            prompt: "请使用 $break，把我指定的组件放到一个临时页面上，用所有真实可能出现的场景渲染一遍做压力测试。页面本身就是交付物：所有场景并排展示，坏掉的地方明确标出来；只观察和标记，不要顺手改组件。"
+            prompt: "请使用 $break，把我指定的组件放到一个临时页面上，用所有真实可能出现的场景渲染一遍做压力测试。页面本身就是交付物：所有场景并排展示，坏掉的地方明确标出来；只观察和标记，不要顺手改组件。",
+            isNew: true
         ),
         Skill(
+            id: "explain-interface",
             category: "找问题",
             stage: "开始前",
             icon: "🔬",
             title: "拆解网站效果做法",
             command: "$explain-interface",
             detail: "给网址或截图，讲清效果怎么做的",
-            prompt: "请使用 $explain-interface，帮我拆解这个网站、视觉效果或动效是怎么做出来的。我会给你网址或截图，请讲清结构、关键技术和实现思路，让我能判断哪些值得借鉴到自己的项目里。"
+            prompt: "请使用 $explain-interface，帮我拆解这个网站、视觉效果或动效是怎么做出来的。我会给你网址或截图，请讲清结构、关键技术和实现思路，让我能判断哪些值得借鉴到自己的项目里。",
+            isNew: true
         ),
 // —— 调排版 ——
         Skill(
+            id: "better-layout",
             category: "调排版",
             stage: "打磨中",
             icon: "📏",
             title: "布局分组与对齐",
             command: "$better-layout",
             detail: "分组、对齐、阅读顺序、响应式、译文空间",
-            prompt: "请使用 $better-layout，优化当前界面的分组、对齐、间距和阅读顺序，并检查响应式结构以及译文变长、RTL 镜像时是否还成立。请用项目现有的间距系统写修复；先指出哪里真的出了问题（挤压、重叠、分组误读），再动手改。"
+            prompt: "请使用 $better-layout，优化当前界面的分组、对齐、间距和阅读顺序，并检查响应式结构以及译文变长、RTL 镜像时是否还成立。请用项目现有的间距系统写修复；先指出哪里真的出了问题（挤压、重叠、分组误读），再动手改。",
+            isNew: true
         ),
         Skill(
+            id: "better-typography",
             category: "调排版",
             stage: "打磨中",
             icon: "✒️",
             title: "字体排印细节",
             command: "$better-typography",
             detail: "字阶、行距、字体特性、折行、标点",
-            prompt: "请使用 $better-typography，检查并优化当前界面的文字排印：字阶和间距、字体加载、OpenType 特性、折行、截断和标点。请用项目现有的样式系统落实，数值以实测为准，不要只凭偏好调整。"
+            prompt: "请使用 $better-typography，检查并优化当前界面的文字排印：字阶和间距、字体加载、OpenType 特性、折行、截断和标点。请用项目现有的样式系统落实，数值以实测为准，不要只凭偏好调整。",
+            isNew: true
         ),
         Skill(
+            id: "better-writing",
             category: "调排版",
             stage: "打磨中",
             icon: "✏️",
             title: "界面文案改写",
             command: "$better-writing",
             detail: "标签、报错、空状态、确认文案",
-            prompt: "请使用 $better-writing，检查并改写当前界面的文案：标签、报错、空状态和确认提示要跟产品现有的语气一致，并让用户知道下一步做什么。只有造成不一致、歧义或翻译风险的才算问题，不要按个人口味硬改。"
+            prompt: "请使用 $better-writing，检查并改写当前界面的文案：标签、报错、空状态和确认提示要跟产品现有的语气一致，并让用户知道下一步做什么。只有造成不一致、歧义或翻译风险的才算问题，不要按个人口味硬改。",
+            isNew: true
         ),
 // —— 调风格 ——
         Skill(
+            id: "better-colors",
             category: "调风格",
             stage: "打磨中",
             icon: "🎨",
             title: "色彩系统与对比度",
             command: "$better-colors",
             detail: "色板、语义 Token、格式转换、对比度测量",
-            prompt: "请使用 $better-colors，帮我建立或检查当前界面的色彩系统。请生成成套色板、映射到语义 Token 并起好名字，需要时做格式转换；对比度必须实际测量，不要估算。先列出量出来的问题，再动手改。"
+            prompt: "请使用 $better-colors，帮我建立或检查当前界面的色彩系统。请生成成套色板、映射到语义 Token 并起好名字，需要时做格式转换；对比度必须实际测量，不要估算。先列出量出来的问题，再动手改。",
+            isNew: true
         ),
         Skill(
+            id: "better-ui",
             category: "调风格",
             stage: "打磨中",
             icon: "🎛️",
             title: "界面质感精修",
             command: "$better-ui",
             detail: "圆角、阴影、图标状态、动效数值",
-            prompt: "请使用 $better-ui，精修当前界面的表面、图标和动效质感：圆角、光学对齐、阴影、图标状态和动画曲线请按它给出的精确数值来，不要近似。交互本身有问题时先修交互，不要用打磨盖过去。"
+            prompt: "请使用 $better-ui，精修当前界面的表面、图标和动效质感：圆角、光学对齐、阴影、图标状态和动画曲线请按它给出的精确数值来，不要近似。交互本身有问题时先修交互，不要用打磨盖过去。",
+            isNew: true
         ),
         Skill(
+            id: "variant",
             category: "调风格",
             stage: "打磨中",
             icon: "🧪",
             title: "组件多方案变体",
             command: "$variant",
             detail: "同一个组件做几个版本挑一个",
-            prompt: "请使用 $variant，帮我把正在做的这个组件做几个不同版本出来并排比较，陪我一版版迭代，最后挑定一个。变体之间要有真实区别，不要只改颜色糊弄。"
+            prompt: "请使用 $variant，帮我把正在做的这个组件做几个不同版本出来并排比较，陪我一版版迭代，最后挑定一个。变体之间要有真实区别，不要只改颜色糊弄。",
+            isNew: true
         ),
 // —— 调交互 ——
         Skill(
+            id: "state-machine",
             category: "调交互",
             stage: "开发中",
             icon: "🔀",
             title: "组件全状态对照",
             command: "$state-machine",
             detail: "一个组件的所有状态同页对照",
-            prompt: "请使用 $state-machine，把我指定的组件的所有状态渲染到一个临时页面上，使用模拟数据并加一个状态切换器，让我能逐个状态慢慢调。这个页面是给我工作的工具，不要合并进正式代码。"
+            prompt: "请使用 $state-machine，把我指定的组件的所有状态渲染到一个临时页面上，使用模拟数据并加一个状态切换器，让我能逐个状态慢慢调。这个页面是给我工作的工具，不要合并进正式代码。",
+            isNew: true
         ),
 // —— 适配上线 ——
         Skill(
+            id: "better-accessibility",
             category: "适配上线",
             stage: "上线前",
             icon: "♿",
             title: "无障碍检查修复",
             command: "$better-accessibility",
             detail: "键盘、焦点、ARIA、读屏、WCAG 2.2",
-            prompt: "请使用 $better-accessibility，按 WCAG 2.2 检查并修复当前界面的无障碍问题。请重点走两遍：只用键盘能不能走完所有流程；用读屏时每个控件有没有名字、角色和状态。每个问题请标出违反了哪条标准，并用项目现有的样式系统写修复。"
+            prompt: "请使用 $better-accessibility，按 WCAG 2.2 检查并修复当前界面的无障碍问题。请重点走两遍：只用键盘能不能走完所有流程；用读屏时每个控件有没有名字、角色和状态。每个问题请标出违反了哪条标准，并用项目现有的样式系统写修复。",
+            isNew: true
         )
     ]
 }
@@ -588,6 +741,8 @@ struct SkillPaletteView: View {
     @State private var query = ""
     @State private var selectedScene = "全部"
     @State private var copiedTitle: String?
+    @State private var copiedCardID: String?
+    @State private var copiedCardIDs = CardNewsState().copiedIDs
 
     private var filteredSkills: [Skill] {
         let q = query.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
@@ -747,7 +902,7 @@ struct SkillPaletteView: View {
                 if filteredSkills.isEmpty {
                     emptyState
                 } else {
-                    ForEach(filteredSkills, id: \.title) { skill in
+                    ForEach(filteredSkills, id: \.id) { skill in
                         skillCard(skill)
                     }
                 }
@@ -770,9 +925,9 @@ struct SkillPaletteView: View {
     }
 
     private func skillCard(_ skill: Skill) -> some View {
-        let isCopied = copiedTitle == skill.title
+        let isCopied = copiedCardID == skill.id
 
-        return SkillCardRow(skill: skill, isCopied: isCopied) {
+        return SkillCardRow(skill: skill, isCopied: isCopied, showsNews: skill.isNew && !copiedCardIDs.contains(skill.id)) {
             copy(skill)
         }
     }
@@ -796,14 +951,18 @@ struct SkillPaletteView: View {
 
     private func copy(_ skill: Skill) {
         NSPasteboard.general.clearContents()
-        NSPasteboard.general.setString(skill.prompt, forType: .string)
+        let succeeded = NSPasteboard.general.setString(skill.prompt, forType: .string)
+        guard CardNewsState().recordCopy(cardID: skill.id, succeeded: succeeded) else { return }
+        copiedCardIDs = CardNewsState().copiedIDs
         withAnimation(.easeOut(duration: 0.18)) {
             copiedTitle = skill.title
+            copiedCardID = skill.id
         }
         DispatchQueue.main.asyncAfter(deadline: .now() + 2.4) {
             withAnimation(.easeOut(duration: 0.18)) {
-                if copiedTitle == skill.title {
+                if copiedCardID == skill.id {
                     copiedTitle = nil
+                    copiedCardID = nil
                 }
             }
         }
@@ -914,6 +1073,7 @@ struct SidebarRow: View {
 struct SkillCardRow: View {
     let skill: Skill
     let isCopied: Bool
+    let showsNews: Bool
     let onCopy: () -> Void
 
     @State private var isHovering = false
@@ -929,6 +1089,15 @@ struct SkillCardRow: View {
                         .font(.custom("PingFang SC", size: 15).weight(.semibold))
                         .foregroundStyle(PaletteColors.ink)
                         .lineLimit(1)
+                    if showsNews {
+                        Text("News")
+                            .font(.system(size: 10, weight: .semibold))
+                            .foregroundStyle(PaletteColors.purple)
+                            .padding(.horizontal, 7)
+                            .padding(.vertical, 3)
+                            .background(PaletteColors.roseSoft, in: Capsule())
+                            .fixedSize()
+                    }
                     Spacer()
                     copyBadge
                 }
@@ -979,7 +1148,7 @@ struct SkillCardRow: View {
         .help("点击复制：\(skill.title)")
         .accessibilityElement(children: .ignore)
         .accessibilityAddTraits(.isButton)
-        .accessibilityLabel("复制 \(skill.title)")
+        .accessibilityLabel("复制 \(skill.title)\(showsNews ? "，新指令" : "")")
     }
 
     private var cardBackground: Color {
