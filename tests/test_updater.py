@@ -62,4 +62,41 @@ class FailureTests(unittest.TestCase):
    u.http=http;u.runner=fail
    with self.assertRaises(RuntimeError):u.run('check')
    self.assertEqual(u.build(),118);self.assertEqual(u.read('status.json')['phase'],'error')
+class RecoveryTests(FailureTests):
+ def transaction(self,u,stage):
+  mfest=u.read('manifest.json');backups=u.state/'backups';backups.mkdir();backup=backups/('118-'+m.uuid.uuid4().hex+'.app');temp=u.target.with_name('.AI-Skill-Palette-update-'+m.uuid.uuid4().hex+'.app');m.shutil.copytree(stage,temp)
+  tx=dict(backup=str(backup),temp=str(temp),old_fingerprint=mfest['base_fingerprint'],new_fingerprint=mfest['staged_fingerprint'],manifest=mfest,started_at=m.time.time());u.write('transaction.json',tx)
+  return tx,backup,temp
+ def test_target_missing_restores(self):
+  with tempfile.TemporaryDirectory() as d:
+   u,stage=self.fixture(pathlib.Path(d).resolve());tx,backup,temp=self.transaction(u,stage);u.target.rename(backup);u.recover();self.assertEqual(u.build(),118);self.assertFalse(u.read('transaction.json'))
+ def test_installed_candidate_recovery(self):
+  with tempfile.TemporaryDirectory() as d:
+   u,stage=self.fixture(pathlib.Path(d).resolve());tx,backup,temp=self.transaction(u,stage);u.target.rename(backup);temp.rename(u.target);u.recover();self.assertEqual(u.build(),119);self.assertEqual(u.read('status.json')['phase'],'installed_pending_launch');self.assertTrue(u.read('receipt.json'))
+ def test_invalid_backup_refused(self):
+  with tempfile.TemporaryDirectory() as d:
+   u,stage=self.fixture(pathlib.Path(d).resolve());tx,backup,temp=self.transaction(u,stage);u.target.rename(backup);(backup/'tampered').write_text('x')
+   with self.assertRaises(m.Conflict):u.recover()
+   self.assertFalse(u.target.exists());self.assertTrue(backup.exists())
+ def test_crash_between_renames(self):
+  from unittest.mock import patch
+  with tempfile.TemporaryDirectory() as d:
+   u,stage=self.fixture(pathlib.Path(d).resolve());original=pathlib.Path.rename
+   def crash(path,target):
+    value=original(path,target)
+    if path==u.target:raise KeyboardInterrupt('simulated process death')
+    return value
+   with patch.object(pathlib.Path,'rename',crash):
+    with self.assertRaises(KeyboardInterrupt):u.apply()
+   self.assertFalse(u.target.exists());self.assertTrue(u.read('transaction.json'));u.recover();self.assertEqual(u.build(),118)
+ def test_preflight_failure_no_ack(self):
+  with tempfile.TemporaryDirectory() as d:
+   u,stage=self.fixture(pathlib.Path(d).resolve());(stage/'tampered').write_text('x')
+   with self.assertRaises(m.Conflict):u.run('apply-wait',request_id=str(m.uuid.uuid4()))
+   self.assertFalse(u.read('apply-ready.json'));self.assertEqual(u.build(),118)
+ def test_busy_no_ack(self):
+  with tempfile.TemporaryDirectory() as d:
+   u,stage=self.fixture(pathlib.Path(d).resolve())
+   with (u.state/'lock').open('a') as lock:
+    m.fcntl.flock(lock,m.fcntl.LOCK_EX|m.fcntl.LOCK_NB);self.assertEqual(u.run('apply-wait',request_id=str(m.uuid.uuid4()))['phase'],'busy');self.assertFalse(u.read('apply-ready.json'))
 if __name__=='__main__':unittest.main()

@@ -64,11 +64,64 @@ class Updater:
             raise ValueError('Symlink state refused')
         return json.loads(p.read_text()) if p.exists() else {}
 
+    def syncdir(self, path):
+        fd = os.open(str(path), os.O_RDONLY)
+        try:
+            try: os.fsync(fd)
+            except OSError as exc:
+                if exc.errno not in (22, 45): raise
+        finally: os.close(fd)
+
     def write(self, name, value):
         p = self.state / (name + '.' + uuid.uuid4().hex + '.tmp')
-        p.write_text(json.dumps(value, ensure_ascii=False, indent=2))
-        os.chmod(p, 384)
+        fd = os.open(str(p), os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+        with os.fdopen(fd, 'w') as stream:
+            json.dump(value, stream, ensure_ascii=False, indent=2)
+            stream.flush(); os.fsync(stream.fileno())
         p.replace(self.state / name)
+        self.syncdir(self.state)
+
+    def transaction_paths(self, tx):
+        backup = Path(tx['backup']); temp = Path(tx['temp'])
+        if backup.parent != self.state/'backups' or not re.fullmatch(r'[0-9]+-[0-9a-f]{32}\.app', backup.name):
+            raise Conflict('Invalid transaction backup')
+        if temp.parent != self.target.parent or not re.fullmatch(r'\.AI-Skill-Palette-update-[0-9a-f]{32}\.app', temp.name):
+            raise Conflict('Invalid transaction temporary path')
+        for root in (backup, temp, self.target):
+            if any(p.is_symlink() for p in (root,*root.parents)):
+                raise Conflict('Symlink transaction path refused')
+        return backup,temp
+
+    def recover(self):
+        tx = self.read('transaction.json')
+        if not tx: return
+        backup,temp = self.transaction_paths(tx)
+        if backup.exists() and fingerprint(backup) != tx['old_fingerprint']:
+            raise Conflict('Recovery backup changed')
+        if not self.target.exists():
+            if not backup.exists(): raise Conflict('Recovery has no valid App backup')
+            backup.rename(self.target); self.syncdir(self.target.parent)
+            self.status('ready','中断的更新已恢复旧版本，候选保留')
+        elif fingerprint(self.target) == tx['new_fingerprint']:
+            if not backup.exists(): raise Conflict('Installed candidate has no backup')
+            self.command(['/usr/bin/codesign','--verify','--deep','--strict',str(self.target)])
+            self.write('receipt.json',dict(tx['manifest'],backup=str(backup),installed_at=tx['started_at']))
+            self.status('installed_pending_launch','更新已安装，等待启动确认',target_build=tx['manifest']['target_build'],commit=tx['manifest']['commit'])
+        elif fingerprint(self.target) != tx['old_fingerprint']:
+            raise Conflict('Unknown App state during recovery')
+        (self.state/'transaction.json').unlink(); self.syncdir(self.state)
+
+    def preflight(self):
+        m = self.read('manifest.json')
+        if not m: raise Conflict('No prepared update')
+        if int(m.get('target_build',0)) <= self.build(): raise Conflict('Stale update refused')
+        stage = Path(m['stage'])
+        if stage.parent != self.state or stage.name != 'staged.app': raise Conflict('Invalid stage')
+        if fingerprint(stage) != m['staged_fingerprint']: raise Conflict('Staged App changed')
+        if fingerprint(self.target) != m['base_fingerprint']: raise Conflict('Installed App changed; refusing overwrite')
+        if plistlib.loads((stage/'Contents/Info.plist').read_bytes()).get('CFBundleIdentifier') != plistlib.loads((self.target/'Contents/Info.plist').read_bytes()).get('CFBundleIdentifier'): raise Conflict('Bundle identifier changed')
+        self.command(['/usr/bin/codesign','--verify','--deep','--strict',str(stage)])
+        return m,stage
 
     def build(self):
         return int(plistlib.loads((self.target / 'Contents/Info.plist').read_bytes())['CFBundleVersion'])
@@ -85,33 +138,31 @@ class Updater:
         m = self.read('manifest.json')
         if not m or self.running(self.target):
             return False
-        if int(m.get('target_build', 0)) <= self.build():
-            raise Conflict('Stale update refused')
-        stage = Path(m['stage'])
-        if stage.parent != self.state or stage.name != 'staged.app':
-            raise ValueError('Invalid stage')
-        if fingerprint(stage) != m['staged_fingerprint']:
-            raise ValueError('Staged App changed')
-        if fingerprint(self.target) != m['base_fingerprint']:
-            raise Conflict('Installed App changed; refusing overwrite')
-        if plistlib.loads((stage / 'Contents/Info.plist').read_bytes()).get('CFBundleIdentifier') != plistlib.loads((self.target / 'Contents/Info.plist').read_bytes()).get('CFBundleIdentifier'):
-            raise Conflict('Bundle identifier changed')
-        self.command(['/usr/bin/codesign', '--verify', '--deep', '--strict', str(stage)])
+        m,stage = self.preflight()
         backups = self.state / 'backups'
         backups.mkdir(exist_ok=True)
+        if backups.is_symlink(): raise Conflict('Symlink backups refused')
         backup = backups / (str(m['current_build']) + '-' + uuid.uuid4().hex + '.app')
         temp = self.target.with_name('.AI-Skill-Palette-update-' + uuid.uuid4().hex + '.app')
         shutil.copytree(stage, temp)
         if self.running(self.target):
             shutil.rmtree(temp)
             return False
+        tx=dict(backup=str(backup),temp=str(temp),old_fingerprint=m['base_fingerprint'],new_fingerprint=m['staged_fingerprint'],manifest=m,started_at=time.time())
+        self.transaction_paths(tx)
+        self.write('transaction.json',tx)
         self.target.rename(backup)
+        self.syncdir(self.target.parent); self.syncdir(backups)
         try:
             temp.rename(self.target)
         except BaseException:
             backup.rename(self.target)
+            self.syncdir(self.target.parent)
+            (self.state/'transaction.json').unlink();self.syncdir(self.state)
             raise
-        self.write('receipt.json', dict(m, backup=str(backup), installed_at=time.time()))
+        self.syncdir(self.target.parent)
+        self.write('receipt.json', dict(m, backup=str(backup), installed_at=tx['started_at']))
+        (self.state/'transaction.json').unlink();self.syncdir(self.state)
         self.status('installed_pending_launch', '更新已安装，等待下次启动验证', target_build=m['target_build'], commit=m['commit'])
         if reopen:
             self.command(['/usr/bin/open', '-g', str(self.target), '--args', '--background-update'])
@@ -181,7 +232,7 @@ class Updater:
             return self.status('ready', '更新已准备，退出 App 后安全生效', target_build=version, commit=commit)
         return self.read('status.json')
 
-    def run(self, action, reopen=False):
+    def run(self, action, reopen=False, request_id=None):
         if (self.state / 'lock').is_symlink():
             raise ValueError('Symlink lock refused')
         with (self.state / 'lock').open('a') as lock:
@@ -191,6 +242,7 @@ class Updater:
             except BlockingIOError:
                 return dict(phase='busy', message='另一个更新任务正在运行')
             try:
+                self.recover()
                 if action == 'check':
                     return self.check()
                 if action == 'status':
@@ -198,11 +250,18 @@ class Updater:
                 if action == 'finalize':
                     return self.finalize()
                 if action == 'apply-wait':
+                    if not request_id or str(uuid.UUID(request_id)) != request_id.lower(): raise Conflict('Valid request ID required')
+                    m,_ = self.preflight()
+                    self.write('apply-ready.json',dict(request_id=request_id,commit=m['commit'],ready_at=time.time()))
                     deadline = time.time() + 60
                     while self.running(self.target) and time.time() < deadline:
                         time.sleep(1)
+                    if self.running(self.target): return self.status('ready','等待退出超时，更新仍已准备',target_build=m['target_build'],commit=m['commit'])
                 return self.apply(reopen=reopen)
             except Exception as exc:
+                if reopen and action == 'apply-wait' and self.target.exists() and not self.running(self.target):
+                    try: self.command(['/usr/bin/open','-g',str(self.target),'--args','--background-update'])
+                    except Exception: pass
                 self.write('error.json', dict(time=time.time(), error=str(exc)))
                 self.status('conflict' if isinstance(exc, Conflict) else 'error', str(exc))
                 raise
@@ -210,5 +269,6 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('action', choices=['check', 'status', 'apply-if-idle', 'apply-wait', 'finalize'])
     parser.add_argument('--reopen', action='store_true')
+    parser.add_argument('--request-id')
     args = parser.parse_args()
-    print(json.dumps(Updater().run(args.action, args.reopen), ensure_ascii=False))
+    print(json.dumps(Updater().run(args.action, args.reopen, args.request_id), ensure_ascii=False))

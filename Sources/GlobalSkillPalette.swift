@@ -1273,6 +1273,7 @@ final class UpdateCoordinator {
     private var timer: Timer?
     private weak var statusItem: NSMenuItem?
     private weak var applyItem: NSMenuItem?
+    private var applying = false
 
     func start(statusItem: NSMenuItem, applyItem: NSMenuItem) {
         self.statusItem = statusItem
@@ -1316,7 +1317,10 @@ final class UpdateCoordinator {
         case "checking", "building": statusItem?.title = "正在后台准备更新，当前 \(current)"
         case "error", "conflict", "version_not_bumped": statusItem?.title = "更新未完成，当前版本继续可用"
         case "installed_pending_launch": statusItem?.title = "更新已安装，等待启动确认"
-        default: statusItem?.title = "当前版本 \(current)，后台检查已启用"
+        default:
+            let configured = FileManager.default.fileExists(atPath: FileManager.default.homeDirectoryForCurrentUser
+                .appendingPathComponent("Library/LaunchAgents/com.fantianxin.aiskillpalette.updater.plist").path)
+            statusItem?.title = "当前版本 \(current)，\(configured ? "后台更新已配置" : "后台更新未配置")"
         }
         applyItem?.isEnabled = phase == "ready"
     }
@@ -1336,14 +1340,51 @@ final class UpdateCoordinator {
     func checkNow() { run("check"); refresh() }
 
     func applyWhenConfirmed() {
-        guard readStatus()["phase"] as? String == "ready" else { return }
+        guard !applying, readStatus()["phase"] as? String == "ready" else { return }
         let alert = NSAlert()
         alert.messageText = "更新灵感指令台？"
         alert.informativeText = "将短暂退出并重新启动指令台。技能、配置和已复制记录会保留。"
         alert.addButton(withTitle: "更新并重新启动")
         alert.addButton(withTitle: "稍后")
         guard alert.runModal() == .alertFirstButtonReturn else { return }
-        if run("apply-wait", reopen: true) { NSApp.terminate(nil) }
+        guard let helper = Bundle.main.url(forResource: "updater", withExtension: "py") else { return }
+        let requestID = UUID().uuidString
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/python3")
+        process.arguments = [helper.path, "apply-wait", "--reopen", "--request-id", requestID]
+        process.environment = ["PATH": "/usr/bin:/bin:/usr/sbin:/sbin", "LANG": "en_US.UTF-8"]
+        process.standardOutput = FileHandle.nullDevice
+        process.standardError = FileHandle.nullDevice
+        do {
+            try process.run()
+            applying = true
+            waitForApplyReady(requestID, process: process, attempts: 100)
+        } catch { showApplyFailure() }
+    }
+
+    private func waitForApplyReady(_ requestID: String, process: Process, attempts: Int) {
+        let data = try? Data(contentsOf: directory.appendingPathComponent("apply-ready.json"))
+        let ack = data.flatMap { try? JSONSerialization.jsonObject(with: $0) as? [String: Any] }
+        if process.isRunning && ack?["request_id"] as? String == requestID {
+            NSApp.terminate(nil)
+            return
+        }
+        guard process.isRunning && attempts > 0 else {
+            applying = false
+            showApplyFailure()
+            return
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
+            self?.waitForApplyReady(requestID, process: process, attempts: attempts - 1)
+        }
+    }
+
+    private func showApplyFailure() {
+        let alert = NSAlert()
+        alert.messageText = "更新暂未开始"
+        alert.informativeText = "后台预检未通过或正在处理其他更新。当前指令台继续运行，可稍后查看更新状态。"
+        alert.addButton(withTitle: "继续使用")
+        alert.runModal()
     }
 
     func showDetails() {
