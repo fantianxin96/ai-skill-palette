@@ -99,4 +99,19 @@ class RecoveryTests(FailureTests):
    u,stage=self.fixture(pathlib.Path(d).resolve())
    with (u.state/'lock').open('a') as lock:
     m.fcntl.flock(lock,m.fcntl.LOCK_EX|m.fcntl.LOCK_NB);self.assertEqual(u.run('apply-wait',request_id=str(m.uuid.uuid4()))['phase'],'busy');self.assertFalse(u.read('apply-ready.json'))
+
+class RelocatedProcessTests(unittest.TestCase):
+ def test_old_launch_path_prevents_update(self):
+  from unittest.mock import patch
+  class Result:
+   stdout = '/Users/example/Desktop/AI Skill Palette.app/Contents/MacOS/AISkillPalette\n'
+  with patch.object(m.subprocess, 'run', return_value=Result()):
+   self.assertTrue(m.app_running(pathlib.Path('/Applications/AI Skill Palette.app')))
+ def test_no_palette_process_is_idle(self):
+  from unittest.mock import patch
+  class Result:
+   stdout = '/usr/bin/python3\n/Applications/Other.app/Contents/MacOS/Other\n'
+  with patch.object(m.subprocess, 'run', return_value=Result()):
+   self.assertFalse(m.app_running(pathlib.Path('/Applications/AI Skill Palette.app')))
+
 if __name__=='__main__':unittest.main()

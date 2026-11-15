@@ -2,7 +2,7 @@
 
 ## AI 协作与当前版本
 
-所有参与 AI 先读 [AGENTS.md](AGENTS.md) 与 [九条协作规则](COLLABORATION.md)。源码构建版本为 **119**，新增 [安全后台更新器](docs/updater.md)：固定 GitHub main 提交、后台准备；App 运行时不替换，等待自然退出或用户选择更新。新闻卡和 News 已复制记录保持。
+所有参与 AI 先读 [AGENTS.md](AGENTS.md) 与 [九条协作规则](COLLABORATION.md)。源码构建版本为 **120**，新增 [安全后台更新器](docs/updater.md)：固定 GitHub main 提交、后台准备；App 运行时不替换，等待自然退出或用户选择更新。新闻卡和 News 已复制记录保持。
 
 更新器需在当前用户下运行 `python3 scripts/enable-updater.py` 启用，已启用的任务不要重复覆盖。之后每小时自动检查；源码、版本与回执分别核验。`python3 scripts/enable-updater.py --disable` 可停用，App、数据和备份保留。不使用 sudo，不安装 Skills，不修改工作仓库。
 
