@@ -39,7 +39,9 @@ def fingerprint(app):
 
 def app_running(target):
     result = subprocess.run(['/bin/ps', '-ww', '-axo', 'comm='], capture_output=True, text=True, check=True)
-    return str(target / 'Contents/MacOS/AISkillPalette') in {line.strip() for line in result.stdout.splitlines()}
+    # A running process retains its launch path after the bundle is moved.
+    # Conservatively defer while any palette executable remains running.
+    return any(Path(line.strip()).name == 'AISkillPalette' for line in result.stdout.splitlines())
 
 class Conflict(ValueError):
     pass

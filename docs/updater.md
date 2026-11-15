@@ -1,6 +1,6 @@
 # GitHub 到本机 App 的安全后台更新
 
-版本 119 的链路：GitHub main → 固定 commit → 独立下载与编译 → ready → App 退出后安全替换 → 下次启动健康确认。运行 App 时不会 kill、替换或弹出面板。更新器安装目标固定为 `/Applications/AI Skill Palette.app`。
+版本 120 的链路：GitHub main → 固定 commit → 独立下载与编译 → ready → App 退出后安全替换 → 下次启动健康确认。运行 App 时不会 kill、替换或弹出面板。更新器安装目标固定为 `/Applications/AI Skill Palette.app`。
 
 ## 启用与停用
 
@@ -43,3 +43,5 @@
 ## 验证
 
 `/usr/bin/python3 -m unittest discover -s tests -p test_updater.py -v` 使用临时 App 和故障注入，不接触正式 App。覆盖运行中延后、安装冲突、候选篡改、降级、并发、编译失败、替换失败恢复、健康回执和 URL 拒绝。真实启用后另外核对 LaunchAgent、commit/候选版本、签名、状态与原 App 指纹，不能只以单元测试声称已生效。
+
+路径迁移保护：保守识别任何 AISkillPalette 可执行进程，而不是只比较当前安装路径。从旧路径启动的实例未退出时也等待，避免 bundle 移动后误判闲时。
