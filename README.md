@@ -1,5 +1,11 @@
 # 灵感指令台 / AI Skill Palette
 
+## AI 协作与当前版本
+
+所有参与的 AI 请先读 [AGENTS.md](AGENTS.md) 与 [九条协作规则](COLLABORATION.md)。当前源码构建版本为 **118**；昨天新增的 15 张卡显示 News，成功复制后该卡隐藏，重启保持。见 [build 118 验证记录](docs/verification-build-118.md)。
+
+**GitHub 到桌面自动同步尚未实现。** 仓库现存下载 zip 未在本次更新；获取 build 118 请先执行 `zsh build.sh`，再打开生成的 `dist/AI Skill Palette.app`。若需运行安装脚本，请先确认 App 产物版本和技能审查范围，避免重复全量安装技能。
+
 ![灵感指令台总览](screenshots/overview.png)
 
 ![定系统场景](screenshots/design-system.png)
