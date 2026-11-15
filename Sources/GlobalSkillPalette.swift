@@ -1266,16 +1266,154 @@ final class PaletteController: NSObject {
     }
 }
 
+
+final class UpdateCoordinator {
+    private let directory = FileManager.default.homeDirectoryForCurrentUser
+        .appendingPathComponent("Library/Application Support/AI Skill Palette/Updater")
+    private var timer: Timer?
+    private weak var statusItem: NSMenuItem?
+    private weak var applyItem: NSMenuItem?
+    private var applying = false
+
+    func start(statusItem: NSMenuItem, applyItem: NSMenuItem) {
+        self.statusItem = statusItem
+        self.applyItem = applyItem
+        writeHealthReceipt()
+        refresh()
+        timer = Timer.scheduledTimer(withTimeInterval: 10, repeats: true) { [weak self] _ in
+            self?.refresh()
+        }
+        run("check")
+    }
+
+    private func readStatus() -> [String: Any] {
+        guard let data = try? Data(contentsOf: directory.appendingPathComponent("status.json")),
+              let status = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else { return [:] }
+        return status
+    }
+
+    private func writeHealthReceipt() {
+        let manifestURL = directory.appendingPathComponent("manifest.json")
+        let manifest = (try? Data(contentsOf: manifestURL)).flatMap {
+            try? JSONSerialization.jsonObject(with: $0) as? [String: Any]
+        } ?? [:]
+        let build = Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "unknown"
+        let health: [String: Any] = ["build": build, "commit": manifest["commit"] as? String ?? "",
+                                     "launched_at": Date().timeIntervalSince1970]
+        try? FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true,
+                                                attributes: [.posixPermissions: 0o700])
+        if let data = try? JSONSerialization.data(withJSONObject: health, options: [.sortedKeys]) {
+            try? data.write(to: directory.appendingPathComponent("health.json"), options: .atomic)
+        }
+    }
+
+    func refresh() {
+        let status = readStatus()
+        let phase = status["phase"] as? String ?? "unknown"
+        let build = status["target_build"].map { String(describing: $0) } ?? ""
+        let current = Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "?"
+        switch phase {
+        case "ready": statusItem?.title = "GitHub 已更新，桌面待生效（\(build)）"
+        case "checking", "building": statusItem?.title = "正在后台准备更新，当前 \(current)"
+        case "error", "conflict", "version_not_bumped": statusItem?.title = "更新未完成，当前版本继续可用"
+        case "installed_pending_launch": statusItem?.title = "更新已安装，等待启动确认"
+        default:
+            let configured = FileManager.default.fileExists(atPath: FileManager.default.homeDirectoryForCurrentUser
+                .appendingPathComponent("Library/LaunchAgents/com.fantianxin.aiskillpalette.updater.plist").path)
+            statusItem?.title = "当前版本 \(current)，\(configured ? "后台更新已配置" : "后台更新未配置")"
+        }
+        applyItem?.isEnabled = phase == "ready"
+    }
+
+    @discardableResult
+    private func run(_ action: String, reopen: Bool = false) -> Bool {
+        guard let helper = Bundle.main.url(forResource: "updater", withExtension: "py") else { return false }
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/python3")
+        process.arguments = [helper.path, action] + (reopen ? ["--reopen"] : [])
+        process.environment = ["PATH": "/usr/bin:/bin:/usr/sbin:/sbin", "LANG": "en_US.UTF-8"]
+        process.standardOutput = FileHandle.nullDevice
+        process.standardError = FileHandle.nullDevice
+        do { try process.run(); return true } catch { return false }
+    }
+
+    func checkNow() { run("check"); refresh() }
+
+    func applyWhenConfirmed() {
+        guard !applying, readStatus()["phase"] as? String == "ready" else { return }
+        let alert = NSAlert()
+        alert.messageText = "更新灵感指令台？"
+        alert.informativeText = "将短暂退出并重新启动指令台。技能、配置和已复制记录会保留。"
+        alert.addButton(withTitle: "更新并重新启动")
+        alert.addButton(withTitle: "稍后")
+        guard alert.runModal() == .alertFirstButtonReturn else { return }
+        guard let helper = Bundle.main.url(forResource: "updater", withExtension: "py") else { return }
+        let requestID = UUID().uuidString
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/python3")
+        process.arguments = [helper.path, "apply-wait", "--reopen", "--request-id", requestID]
+        process.environment = ["PATH": "/usr/bin:/bin:/usr/sbin:/sbin", "LANG": "en_US.UTF-8"]
+        process.standardOutput = FileHandle.nullDevice
+        process.standardError = FileHandle.nullDevice
+        do {
+            try process.run()
+            applying = true
+            waitForApplyReady(requestID, process: process, attempts: 100)
+        } catch { showApplyFailure() }
+    }
+
+    private func waitForApplyReady(_ requestID: String, process: Process, attempts: Int) {
+        let data = try? Data(contentsOf: directory.appendingPathComponent("apply-ready.json"))
+        let ack = data.flatMap { try? JSONSerialization.jsonObject(with: $0) as? [String: Any] }
+        if process.isRunning && ack?["request_id"] as? String == requestID {
+            NSApp.terminate(nil)
+            return
+        }
+        guard process.isRunning && attempts > 0 else {
+            applying = false
+            showApplyFailure()
+            return
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
+            self?.waitForApplyReady(requestID, process: process, attempts: attempts - 1)
+        }
+    }
+
+    private func showApplyFailure() {
+        let alert = NSAlert()
+        alert.messageText = "更新暂未开始"
+        alert.informativeText = "后台预检未通过或正在处理其他更新。当前指令台继续运行，可稍后查看更新状态。"
+        alert.addButton(withTitle: "继续使用")
+        alert.runModal()
+    }
+
+    func showDetails() {
+        let status = readStatus()
+        let alert = NSAlert()
+        alert.messageText = "更新状态"
+        alert.informativeText = (status["message"] as? String ?? "等待后台检查")
+            + "\n\nGitHub：fantianxin96/ai-skill-palette\n安装位置：/Applications/AI Skill Palette.app"
+        alert.addButton(withTitle: "知道了")
+        alert.runModal()
+    }
+}
+
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusItem: NSStatusItem?
     private var palette: PaletteController?
     private var hotKeyRef: EventHotKeyRef?
+    private let updater = UpdateCoordinator()
+    private var updateStatusItem: NSMenuItem?
+    private var updateApplyItem: NSMenuItem?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         palette = PaletteController()
         setupStatusItem()
         setupHotkey()
-        palette?.show()
+        if !CommandLine.arguments.contains("--background-update") { palette?.show() }
+        if let status = updateStatusItem, let apply = updateApplyItem {
+            updater.start(statusItem: status, applyItem: apply)
+        }
     }
 
     private func setupStatusItem() {
@@ -1287,6 +1425,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         menu.addItem(NSMenuItem(title: "显示 / 隐藏", action: #selector(togglePalette), keyEquivalent: ""))
         menu.addItem(NSMenuItem.separator())
         menu.addItem(NSMenuItem(title: "退出", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
+        let status = NSMenuItem(title: "正在读取更新状态", action: #selector(showUpdateDetails), keyEquivalent: "")
+        let apply = NSMenuItem(title: "更新并重新启动…", action: #selector(applyUpdate), keyEquivalent: "")
+        apply.isEnabled = false
+        menu.insertItem(NSMenuItem.separator(), at: 2)
+        menu.insertItem(status, at: 3)
+        menu.insertItem(NSMenuItem(title: "检查更新", action: #selector(checkForUpdate), keyEquivalent: ""), at: 4)
+        menu.insertItem(apply, at: 5)
+        menu.autoenablesItems = false
+        updateStatusItem = status
+        updateApplyItem = apply
         statusItem?.menu = menu
     }
 
@@ -1304,6 +1452,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             return noErr
         }, 1, &eventType, Unmanaged.passUnretained(self).toOpaque(), nil)
     }
+
+    @objc private func checkForUpdate() { updater.checkNow() }
+    @objc private func applyUpdate() { updater.applyWhenConfirmed() }
+    @objc private func showUpdateDetails() { updater.showDetails() }
 
     @objc private func togglePalette() {
         palette?.toggle()

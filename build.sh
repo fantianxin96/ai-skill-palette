@@ -18,6 +18,10 @@ xcrun swiftc \
   -framework Carbon \
   -o "$EXECUTABLE"
 
+if [[ -f "$ROOT_DIR/Resources/updater.py" ]]; then
+  cp "$ROOT_DIR/Resources/updater.py" "$APP_DIR/Contents/Resources/updater.py"
+fi
+
 if [[ -f "$ICON_FILE" ]]; then
   cp "$ICON_FILE" "$APP_DIR/Contents/Resources/AppIcon.icns"
 fi
@@ -42,7 +46,7 @@ cat > "$APP_DIR/Contents/Info.plist" <<'PLIST'
     <key>CFBundleShortVersionString</key>
     <string>1.0</string>
     <key>CFBundleVersion</key>
-    <string>118</string>
+    <string>119</string>
     <key>LSMinimumSystemVersion</key>
     <string>12.0</string>
     <key>LSUIElement</key>

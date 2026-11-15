@@ -2,9 +2,11 @@
 
 ## AI 协作与当前版本
 
-所有参与的 AI 请先读 [AGENTS.md](AGENTS.md) 与 [九条协作规则](COLLABORATION.md)。当前源码构建版本为 **118**；昨天新增的 15 张卡显示 News，成功复制后该卡隐藏，重启保持。见 [build 118 验证记录](docs/verification-build-118.md)。
+所有参与 AI 先读 [AGENTS.md](AGENTS.md) 与 [九条协作规则](COLLABORATION.md)。源码构建版本为 **119**，新增 [安全后台更新器](docs/updater.md)：固定 GitHub main 提交、后台准备；App 运行时不替换，等待自然退出或用户选择更新。新闻卡和 News 已复制记录保持。
 
-**GitHub 到桌面自动同步尚未实现。** 仓库现存下载 zip 未在本次更新；获取 build 118 请先执行 `zsh build.sh`，再打开生成的 `dist/AI Skill Palette.app`。若需运行安装脚本，请先确认 App 产物版本和技能审查范围，避免重复全量安装技能。
+更新器需在当前用户下运行 `python3 scripts/enable-updater.py` 启用，已启用的任务不要重复覆盖。之后每小时自动检查；源码、版本与回执分别核验。`python3 scripts/enable-updater.py --disable` 可停用，App、数据和备份保留。不使用 sudo，不安装 Skills，不修改工作仓库。
+
+仓库旧下载 zip 仍未更新；请先执行 `zsh build.sh` 获取最新 App。初次启用时运行中的旧版继续工作，候选更新在下次后台检查发现 App 已退出后生效，最长等待约一小时；下次打开再确认健康状态。尚无远程强制推送、独立发布者签名链或 Skills 自动导入。
 
 ![灵感指令台总览](screenshots/overview.png)
 
