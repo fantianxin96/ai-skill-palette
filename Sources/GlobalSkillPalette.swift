@@ -168,6 +168,16 @@ final class PromptStore {
             isNew: false
         ),
         Skill(
+            id: "ui-ux-pro-max",
+            category: "系统",
+            stage: "定系统",
+            icon: "🗃️",
+            title: "设计资料检索（配色/字体/规范）",
+            command: "$ui-ux-pro-max",
+            detail: "按任务检索，核对平台与已有规范",
+            prompt: "请使用 $ui-ux-pro-max，为当前设计任务做只读资料检索。先读取本机已有 Skill，确认实际入口和目标平台；若不可用，明确缺少什么，不重复安装。按产品、行业、任务与风格检索设计系统，再按需查询配色、字体、交互规范。把结果与用户已确认的品牌、字体、布局和项目规范逐项核对，指出不适用或互相矛盾的建议；不要把营销落地页结构直接套到 App，也不要照搬评分或可访问性声明。只输出来源、适用建议、排除项与待验证项；本轮不修改项目、不持久写入设计系统、不启用 hook，不安装全局 CLI。"
+        ),
+        Skill(
             id: "i-system",
             category: "系统",
             stage: "定系统",
